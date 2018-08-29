@@ -13,7 +13,7 @@ def mmls():
     # partition is declared in the MBR
     if len(mbr_data) == 1 and mbr_data[0][1]['ptype'] == mbr.MBR_PARTTYPE_GPT:
         gpt_data = gpt.readGPT(args.dump, mbr_data[0][1]['start'])
-        print(gpt_data)
+        gpt.print_gpt(gpt_data)
 
 if __name__ == '__main__':
     mmls()

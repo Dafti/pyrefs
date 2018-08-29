@@ -49,15 +49,15 @@ def _gpt_init(header):
 def _gpt_add_partitions(gpt, part_list):
     gpt['parts'] = part_list
 
-def _gpt_part_init(entry):
-    part = {'type': guid_string(entry[0]),
+def _gpt_part_init(entry, index):
+    part = {'index': index,
+            'type': guid_string(entry[0]),
             'guid': guid_string(entry[1]),
             'first_lba': entry[2],
             'last_lba': entry[3],
             'attr': entry[4],
             'name': str(entry[5].decode('utf-16le'))}
     return part
-
 
 def _read_gpt_partitions(stream, part_lba, num_part, part_size):
     parts = []
@@ -66,7 +66,7 @@ def _read_gpt_partitions(stream, part_lba, num_part, part_size):
         stream.seek(part_offset, 0)
         part_block = stream.read(part_size)
         part = GPT_PART_FORMAT.unpack_from(part_block, 0)
-        part = _gpt_part_init(part)
+        part = _gpt_part_init(part, pi)
         if part['type'] != GUID_UNUSED_PART_STRING:
             parts.append(part)
     return parts
@@ -83,3 +83,28 @@ def readGPT(stream, offset=1):
                                  gpt['npart'], gpt['part_size'])
     _gpt_add_partitions(gpt, parts)
     return gpt
+
+def print_gpt(gpt):
+    print('GPT media')
+    print('Signature: {}'.format(gpt['signature']))
+    print('Revision: {}'.format(gpt['revision']))
+    print('Header size: {}'.format(gpt['header_size']))
+    print('Header CRC: {}'.format(gpt['header_crc']))
+    print('Current LBA: {}'.format(gpt['cur_lba']))
+    print('Backup LBA: {}'.format(gpt['bkp_lba']))
+    print('First LBA: {}'.format(gpt['first_lba']))
+    print('Last LBA: {}'.format(gpt['last_lba']))
+    print('Disk GUID: {}'.format(gpt['disk_guid']))
+    print('Partitions LBA: {}'.format(gpt['part_lba']))
+    print('Number of partitions: {}'.format(gpt['npart']))
+    print('Partition size: {}'.format(gpt['part_size']))
+    print('Partition CRC: {}'.format(gpt['part_crc']))
+    print('Partition list:')
+    for part in gpt['parts']:
+        print('- Partition {}:'.format(part['index']))
+        print('  Type: {}'.format(part['type']))
+        print('  GUID: {}'.format(part['guid']))
+        print('  First LBA: {}'.format(part['first_lba']))
+        print('  Last LBA: {}'.format(part['last_lba']))
+        print('  Attributes: {}'.format(part['attr']))
+        print('  Name: {}'.format(part['name']))
