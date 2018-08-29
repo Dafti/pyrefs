@@ -40,12 +40,11 @@ def readMBR(stream):
         for p in range(MBR_PART_TABLE_SIZE):
             # by convention, _ is the variable name for ignored values in Python
             mbr_entry = MBR_PART_FORMAT.unpack_from(data, MBR_PART_TABLE_OFFSET + (p * MBR_PART_ENTRY_SIZE))
-            print(mbr_entry)
             bflag, _, ptype, _, start, size = mbr_entry
             if ptype != 0:
                 mbr.append( (p, { 'bflag':bflag, 'ptype':ptype, 'start':start, 'size':size } ) )
-            else:
-                print('Ignored entry')
+            # else:
+            #     print('Ignored entry')
     # print(mbr)    
     return mbr
 
