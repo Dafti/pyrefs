@@ -20,9 +20,11 @@ GPT_PART_FORMAT = Struct('<16s16sQQQ72s')
 GUID_LE_FORMAT = Struct('<LHH')
 GUID_BG_FORMAT = Struct('>HHL')
 GUID_UNUSED_PART_STRING = '00000000-0000-0000-0000-000000000000'
+GUID_PART_TYPE_W_BASIC_DATA_PART = 'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7'
+GUID_PART_TYPE_W_MS_RESV_PART = 'e3c9e316-0b5c-4db8-817d-f92df00215ae'
 GUID_TRANSLATION = {
-    'e3c9e316-0b5c-4db8-817d-f92df00215ae': 'Windows - Microsoft Reserved Partition',
-    'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7': 'Windows - Basic data partition'
+    GUID_PART_TYPE_W_MS_RESV_PART: 'Windows - Microsoft Reserved Partition',
+    GUID_PART_TYPE_W_BASIC_DATA_PART: 'Windows - Basic data partition'
     }
 
 def guid_string(guid):
@@ -60,7 +62,7 @@ def _gpt_part_init(entry, index):
             'first_lba': entry[2],
             'last_lba': entry[3],
             'attr': entry[4],
-            'name': str(entry[5].decode('utf-16le'))}
+            'name': entry[5].decode('utf-16le')}
     return part
 
 def _read_gpt_partitions(stream, part_lba, num_part, part_size):
@@ -90,7 +92,7 @@ def readGPT(stream, offset=1):
 
 def print_gpt(gpt):
     print('GPT media')
-    print('Signature: {}'.format(gpt['signature']))
+    print('Signature: {}'.format(gpt['signature'].decode('utf-8')))
     print('Revision: {}'.format(gpt['revision']))
     print('Header size: {}'.format(gpt['header_size']))
     print('Header CRC: {}'.format(gpt['header_crc']))
