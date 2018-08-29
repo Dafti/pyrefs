@@ -20,6 +20,10 @@ GPT_PART_FORMAT = Struct('<16s16sQQQ72s')
 GUID_LE_FORMAT = Struct('<LHH')
 GUID_BG_FORMAT = Struct('>HHL')
 GUID_UNUSED_PART_STRING = '00000000-0000-0000-0000-000000000000'
+GUID_TRANSLATION = {
+    'e3c9e316-0b5c-4db8-817d-f92df00215ae': 'Windows - Microsoft Reserved Partition',
+    'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7': 'Windows - Basic data partition'
+    }
 
 def guid_string(guid):
     _guid_le = GUID_LE_FORMAT.unpack_from(guid, 0)
@@ -102,7 +106,7 @@ def print_gpt(gpt):
     print('Partition list:')
     for part in gpt['parts']:
         print('- Partition {}:'.format(part['index']))
-        print('  Type: {}'.format(part['type']))
+        print('  Type (GUID type): {} ({})'.format(GUID_TRANSLATION[part['type']], part['type']))
         print('  GUID: {}'.format(part['guid']))
         print('  First LBA: {}'.format(part['first_lba']))
         print('  Last LBA: {}'.format(part['last_lba']))
