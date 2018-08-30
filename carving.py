@@ -49,34 +49,6 @@ def blocks_with_file_attributes(dump, blocks, block_size):
             blocks_found.append(block)
     return blocks_found
 
-# tree_control_entryblock_addr = 0
-# for i in range(offset,end,step):
-#     f.seek(i, 0)
-#     data = f.read(4)
-#     entryblock,=ENTRYBLOCK_FORMAT.unpack_from(data, 0)
-#     if entryblock != 0:
-#         f.seek(i+nodeid_offset,0)
-#         data=f.read(2)
-#         nodeid,=NODEID_FORMAT.unpack_from(data, 0)
-#         if nodeid == 0x0600:
-#             tree_control_entryblock_addr = i
-#         f.seek(i+childid_offset,0)
-#         data = f.read(2)
-#         childid,=NODEID_FORMAT.unpack_from(data, 0)
-#         f.seek(i+counter_offset, 0)
-#         counter=f.read(1)[0]
-#         steps = int((i - offset) / step)
-#         print('{:6} {:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x}'.format(steps, i, i+step, entryblock, counter, nodeid, childid))
-        # f.seek(i,0)
-        # block = f.read(step)
-        # fileids = find_bytes([0x30,0,1,0], block)
-        # folderids = find_bytes([0x30,0,2,0], block)
-        # print('{:6} {:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x} {:2} {:2}'.format(steps, i, i+step, entryblock, counter, nodeid, childid, len(fileids), len(folderids)))
-        # if fileids:
-        #     print('{:6} {:10}   {:10}  fileids = {}'.format('', '', '', fileids))
-        # if folderids:
-        #     print('{:6} {:10}   {:10}  forderids = {}'.format('', '', '', folderids))
-
 parser = argparse.ArgumentParser(description='ReFS carving on provided dump.')
 parser.add_argument('dump', action='store',
         type=argparse.FileType(mode='rb'))
@@ -107,6 +79,35 @@ for b in blocks_with_files:
     print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x} {:4} {:4}'.format(b['offset'],
         b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid'],
         len(b['fileids']), len(b['folderids'])))
+
+print("==================================================================")
+print("Files found")
+print("==================================================================")
+for block in blocks_with_files:
+    for fid in block['fileids']:
+        attr = refs_attr.read_attribute(args.dump, fid)
+        try:
+            filename = attr['filename'].decode('utf-16le')
+        except:
+            filename = attr['filename']
+        print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
+            block['offset'], block['entryblock'],
+            block['nodeid'], block['childid'], attr['absolute_offset'], filename))
+
+print("==================================================================")
+print("Folders found")
+print("==================================================================")
+for block in blocks_with_files:
+    for fid in block['folderids']:
+        attr = refs_attr.read_attribute(args.dump, fid)
+        try:
+            foldername = attr['foldername'].decode('utf-16le')
+        except:
+            foldername = attr['foldername']
+        print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
+            block['offset'], block['entryblock'],
+            block['nodeid'], block['childid'], attr['absolute_offset'], foldername))
+
 
 # print("Tree control entry block address = {:#x}".format(tree_control_entryblock_addr))
 # 
