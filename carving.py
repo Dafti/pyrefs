@@ -41,11 +41,12 @@ def blocks_with_file_attributes(dump, blocks, block_size):
     for block in blocks:
         dump.seek(block['offset'])
         data = dump.read(block_size)
-        fileids = find_bytes([0x30,0,1,0], block)
-        folderids = find_bytes([0x30,0,2,0], block)
-        block['fileids'] = [ x + block['offset'] - 0x10 for x in fileids ]
-        block['folderids'] = [ x + block['offset'] - 0x10 for x in folderids ]
-        blocks_found.append(block)
+        fileids = find_bytes([0x30,0,1,0], data)
+        folderids = find_bytes([0x30,0,2,0], data)
+        if fileids or folderids:
+            block['fileids'] = [ x + block['offset'] - 0x10 for x in fileids ]
+            block['folderids'] = [ x + block['offset'] - 0x10 for x in folderids ]
+            blocks_found.append(block)
     return blocks_found
 
 # tree_control_entryblock_addr = 0
@@ -97,6 +98,15 @@ print("==================================================================")
 for b in blocks:
     print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x}'.format(b['offset'],
         b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid']))
+
+blocks_with_files = blocks_with_file_attributes(args.dump, blocks, step)
+print("==================================================================")
+print("Blocks found with files found")
+print("==================================================================")
+for b in blocks_with_files:
+    print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x} {:4} {:4}'.format(b['offset'],
+        b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid'],
+        len(b['fileids']), len(b['folderids'])))
 
 # print("Tree control entry block address = {:#x}".format(tree_control_entryblock_addr))
 # 
