@@ -2,7 +2,7 @@ import sys
 import argparse
 import media.mbr as mbr
 import media.gpt as gpt
-import part.refs as refs
+import part.refs.vol as refs
 
 parser = argparse.ArgumentParser(description='Read from provided dump.')
 parser.add_argument('dump', action='store',
