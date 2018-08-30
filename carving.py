@@ -49,6 +49,17 @@ def blocks_with_file_attributes(dump, blocks, block_size):
             blocks_found.append(block)
     return blocks_found
 
+def blocks_with_child_attributes(dump, blocks, block_size):
+    blocks_found = []
+    for block in blocks:
+        dump.seek(block['offset'])
+        data = dump.read(block_size)
+        ids = find_bytes([0x20,0,0,0x80], data)
+        if ids:
+            block['childids'] = [ x + block['offset'] - 0x10 for x in ids ]
+            blocks_found.append(block)
+    return blocks_found
+
 parser = argparse.ArgumentParser(description='ReFS carving on provided dump.')
 parser.add_argument('dump', action='store',
         type=argparse.FileType(mode='rb'))
@@ -71,59 +82,60 @@ for b in blocks:
     print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x}'.format(b['offset'],
         b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid']))
 
-blocks_with_files = blocks_with_file_attributes(args.dump, blocks, step)
-print("==================================================================")
-print("Blocks found with files found")
-print("==================================================================")
-for b in blocks_with_files:
-    print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x} {:4} {:4}'.format(b['offset'],
-        b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid'],
-        len(b['fileids']), len(b['folderids'])))
-
-print("==================================================================")
-print("Files found")
-print("==================================================================")
-for block in blocks_with_files:
-    for fid in block['fileids']:
-        attr = refs_attr.read_attribute(args.dump, fid)
-        try:
-            filename = attr['filename'].decode('utf-16le')
-        except:
-            filename = attr['filename']
-        print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
-            block['offset'], block['entryblock'],
-            block['nodeid'], block['childid'], attr['absolute_offset'], filename))
-
-print("==================================================================")
-print("Folders found")
-print("==================================================================")
-for block in blocks_with_files:
-    for fid in block['folderids']:
-        attr = refs_attr.read_attribute(args.dump, fid)
-        try:
-            foldername = attr['foldername'].decode('utf-16le')
-        except:
-            foldername = attr['foldername']
-        print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
-            block['offset'], block['entryblock'],
-            block['nodeid'], block['childid'], attr['absolute_offset'], foldername))
-
-
-# print("Tree control entry block address = {:#x}".format(tree_control_entryblock_addr))
+# blocks_with_files = blocks_with_file_attributes(args.dump, blocks, step)
+# print("==================================================================")
+# print("Blocks found with files found")
+# print("==================================================================")
+# for b in blocks_with_files:
+#     print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x} {:4} {:4}'.format(b['offset'],
+#         b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid'],
+#         len(b['fileids']), len(b['folderids'])))
 # 
-# f.seek(tree_control_entryblock_addr,0)
-# block = f.read(step)
-# fileids = find_bytes([0x30,0,1,0], block)
-# if fileids:
-#     print('  fileids = {}'.format(fileids))
-#     for fid in fileids:
-#         attr = refs_attr.read_attribute(f, tree_control_entryblock_addr + fid - 0x10)
-#         print('{:#010x} {}'.format(attr['type'], attr['filename'].decode('utf-16le')))
-# folderids = find_bytes([0x30,0,2,0], block)
-# if folderids:
-#     print('  folderids = "{}"'.format(folderids))
-#     for fid in folderids:
-#         attr = refs_attr.read_attribute(f, tree_control_entryblock_addr + fid - 0x10)
-#         print('{:#010x} "{}"'.format(attr['type'], attr['foldername'].decode('utf-16le')))
- 
+# print("==================================================================")
+# print("Files found")
+# print("==================================================================")
+# for block in blocks_with_files:
+#     for fid in block['fileids']:
+#         attr = refs_attr.read_attribute(args.dump, fid)
+#         try:
+#             filename = attr['filename'].decode('utf-16le')
+#         except:
+#             filename = attr['filename']
+#         print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
+#             block['offset'], block['entryblock'],
+#             block['nodeid'], block['childid'], attr['absolute_offset'], filename))
+# 
+# print("==================================================================")
+# print("Folders found")
+# print("==================================================================")
+# for block in blocks_with_files:
+#     for fid in block['folderids']:
+#         attr = refs_attr.read_attribute(args.dump, fid)
+#         try:
+#             foldername = attr['foldername'].decode('utf-16le')
+#         except:
+#             foldername = attr['foldername']
+#         print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
+#             block['offset'], block['entryblock'],
+#             block['nodeid'], block['childid'], attr['absolute_offset'], foldername))
+
+blocks_with_child = blocks_with_child_attributes(args.dump, blocks, step)
+print("==================================================================")
+print("Blocks with child found")
+print("==================================================================")
+for b in blocks_with_child:
+    print('{:#010x} - {:#010x}: {:#06x} {:>3} {:#06x} {:#06x} {:4}'.format(b['offset'],
+        b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid'],
+        len(b['childids'])))
+    for oc in b['childids']:
+        attr = refs_attr.read_attribute(args.dump, oc)
+        if attr['000c'] != 0x000c:
+            print('False positive')
+        else:
+            try:
+                attr['filename'] = attr['filename'].decode('utf-16le')
+            except:
+                attr['filename'] = attr['filename']
+            print(attr)
+
 args.dump.close()
