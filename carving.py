@@ -1,3 +1,4 @@
+import argparse
 from struct import Struct
 import part.refs.attribute as refs_attr
 
@@ -27,7 +28,7 @@ def find_blocks(dump, offset, end, step):
             data = dump.read(2)
             childid, = NODEID_FORMAT.unpack_from(data, 0)
             dump.seek(i+counter_offset, 0)
-            counter=f.read(1)[0]
+            counter = dump.read(1)[0]
             steps = int((i - offset) / step)
             block = {'offset': i, 'entryblock': entryblock,
                      'counter': counter, 'nodeid': nodeid,
@@ -75,7 +76,10 @@ def blocks_with_file_attributes(dump, blocks, block_size):
         # if folderids:
         #     print('{:6} {:10}   {:10}  forderids = {}'.format('', '', '', folderids))
 
-f = open('resilient_fs.raw.001', 'rb')
+parser = argparse.ArgumentParser(description='ReFS carving on provided dump.')
+parser.add_argument('dump', action='store',
+        type=argparse.FileType(mode='rb'))
+args = parser.parse_args()
 
 offset=0x8100000
 end=0x16d00000
@@ -86,7 +90,7 @@ childid_offset=0x20
 ENTRYBLOCK_FORMAT=Struct('<H')
 NODEID_FORMAT=Struct('<H')
 
-blocks = find_blocks(f, offset, end, step)
+blocks = find_blocks(args.dump, offset, end, step)
 print("==================================================================")
 print("Blocks found")
 print("==================================================================")
@@ -111,4 +115,4 @@ for b in blocks:
 #         attr = refs_attr.read_attribute(f, tree_control_entryblock_addr + fid - 0x10)
 #         print('{:#010x} "{}"'.format(attr['type'], attr['foldername'].decode('utf-16le')))
  
-f.close()
+args.dump.close()
