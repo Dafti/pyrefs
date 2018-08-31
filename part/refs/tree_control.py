@@ -7,7 +7,7 @@ def read_tree_control(dump, offset):
     dump.seek(offset, 0)
     data = dump.read(TC_HEADER_FORMAT.size)
     fields = TC_HEADER_FORMAT.unpack_from(data, 0)
-    tc = {'absolute_offset': offset,
+    tc = {'_absolute_offset': offset,
           'eb_number': fields[0],
           'offset_extents': fields[2],
           'num_extents': fields[3],
@@ -21,11 +21,12 @@ def read_tree_control(dump, offset):
         e_pt, = TC_EXTENT_POINTER_FORMAT.unpack_from(data, 0)
         e_pts.append(e_pt)
     tc['extent_pointers'] = e_pts
-    tc['tree_control_size'] = tc['offset_record'] + tc['length_record']
+    tc['_structure_size'] = tc['offset_record'] + tc['length_record']
     return tc
 
 def dump_tree_control(tc):
-    print('Tree control {:#x} ({size},{size:#x}):'.format(tc['absolute_offset'], size=tc['tree_control_size']))
+    print('Tree control: <{:#x}> ({size},{size:#x})'.format(tc['_absolute_offset'],
+                                                            size=tc['_structure_size']))
     print('- entryblock number: {:#x}'.format(tc['eb_number']))
     print('- offset of extents: {val:#x} ({val})'.format(val=tc['offset_extents']))
     print('- number of extents: {}'.format(tc['num_extents']))
@@ -46,7 +47,7 @@ def read_tree_control_ext(dump, offset):
     dump.seek(offset, 0)
     data = dump.read(TC_EXT_HEADER_FORMAT.size)
     fields = TC_EXT_HEADER_FORMAT.unpack_from(data, 0)
-    tc_e = {'absolute_offset': offset,
+    tc_e = {'_absolute_offset': offset,
             'eb_number': fields[0],
             'counter': fields[1],
             'node_id': fields[3],
@@ -69,11 +70,12 @@ def read_tree_control_ext(dump, offset):
         rec = {'eb_number': fields[0]}
         recs.append(rec)
     tc_e['records'] = recs
-    tc_e['tree_control_ext_size'] = TC_EXT_RECORD_OFFSET + (tc_e['num_records'] * tc_e['length_record'])
+    tc_e['_structure_size'] = TC_EXT_RECORD_OFFSET + (tc_e['num_records'] * tc_e['length_record'])
     return tc_e
 
 def dump_tree_control_ext(tc_e):
-    print('Tree control extension {:#x} ({size},{size:#x}):'.format(tc_e['absolute_offset'], size=tc_e['tree_control_ext_size']))
+    print('Tree control extension: <{:#x}> ({size},{size:#x})'.format(tc_e['_absolute_offset'],
+                                                                      size=tc_e['_structure_size']))
     print('- entryblock number: {:#x}'.format(tc_e['eb_number']))
     print('- counter: {}'.format(tc_e['counter']))
     print('- node id: {:#x}'.format(tc_e['node_id']))
