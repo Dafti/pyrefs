@@ -10,6 +10,7 @@ from util.hexdump import hexdump
 
 SECTOR_SIZE = 512
 ENTRYBLOCK_SIZE = 16 * 1024
+CLUSTER_SIZE = 4 * ENTRYBLOCK_SIZE
 
 def find_bytes(entry, block):
     hits = []
@@ -238,9 +239,20 @@ for i, rec in enumerate(tc_e[0]['records']):
         continue
     print('')
 
-    addr = offset + (16 * 1024 * rec['eb_number'])
+    addr = offset + (ENTRYBLOCK_SIZE * rec['eb_number'])
     args.dump.seek(addr, 0)
-    data = args.dump.read(16 * 1024)
+    data = args.dump.read(ENTRYBLOCK_SIZE)
     hexdump(data, addr)
+
+print('')
+
+addr = offset + (ENTRYBLOCK_SIZE * ot['records'][1]['eb_num'])
+# eb = reb.read_entryblock(args.dump, addr)
+# reb.dump_entryblock(eb)
+ot = rot.read_object_tree(args.dump, addr)
+rot.dump_object_tree(ot)
+args.dump.seek(addr, 0)
+data = args.dump.read(ENTRYBLOCK_SIZE)
+hexdump(data, addr)
 
 args.dump.close()
