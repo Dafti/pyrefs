@@ -1,11 +1,15 @@
 import argparse
 import sys
 from struct import Struct
-# import part.refs.entry_block as reb
+import part.refs.entry_block as reb
 import part.refs.tree_control as rtc
 import part.refs.attribute as refs_attr
 import part.refs.allocator as alloc
+import part.refs.object_tree as rot
 from util.hexdump import hexdump
+
+SECTOR_SIZE = 512
+ENTRYBLOCK_SIZE = 16 * 1024
 
 def find_bytes(entry, block):
     hits = []
@@ -24,9 +28,10 @@ def find_blocks(dump, offset, end, step):
     for i in range(offset,end,step):
         dump.seek(i, 0)
         data = dump.read(4)
-        entryblock,=ENTRYBLOCK_FORMAT.unpack_from(data, 0)
+        entryblock, = ENTRYBLOCK_FORMAT.unpack_from(data, 0)
         if (i - offset) / step == entryblock:
         # if entryblock != 0:
+        # if reb.is_entry_block(dump, i, offset):
             dump.seek(i+nodeid_offset,0)
             data = dump.read(4)
             nodeid, = NODEID_FORMAT.unpack_from(data, 0)
@@ -82,13 +87,13 @@ childid_offset=0x20
 ENTRYBLOCK_FORMAT=Struct('<L')
 NODEID_FORMAT=Struct('<L')
 
-blocks = find_blocks(args.dump, offset, end, step)
-print("==================================================================")
-print("Blocks found ({})".format(len(blocks)))
-print("==================================================================")
-for b in blocks:
-    print('{:#010x} - {:#010x}: {:#010x} {:>3} {:#010x} {:#010x}'.format(b['offset'],
-        b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid']))
+# blocks = find_blocks(args.dump, offset, end, step)
+# print("==================================================================")
+# print("Blocks found ({})".format(len(blocks)))
+# print("==================================================================")
+# for b in blocks:
+#     print('{:#010x} - {:#010x}: {:#010x} {:>3} {:#010x} {:#010x}'.format(b['offset'],
+#         b['offset'] + step, b['entryblock'], b['counter'], b['nodeid'], b['childid']))
 
 # blocks_with_files = blocks_with_file_attributes(args.dump, blocks, step)
 # print("==================================================================")
@@ -155,25 +160,26 @@ data = args.dump.read(tc['tree_control_size'])
 hexdump(data, addr)
 
 # tree control copies
-# print('')
-#
-# addr = 0x4fc0f4000
-# tc = rtc.read_tree_control(args.dump, addr)
-# print(tc)
-# rtc.dump_tree_control(tc)
-# args.dump.seek(addr, 0)
-# data = args.dump.read(tc['tree_control_size'])
-# hexdump(data, addr)
-#
-# print('')
-#
-# addr = 0x4fc0f8000
-# tc = rtc.read_tree_control(args.dump, addr)
-# print(tc)
-# rtc.dump_tree_control(tc)
-# args.dump.seek(addr, 0)
-# data = args.dump.read(tc['tree_control_size'])
-# hexdump(data, addr)
+tc_c_addrs = [0x4fc0f4000, 0x4fc0f8000] 
+print('')
+
+addr = 0x4fc0f4000
+tc = rtc.read_tree_control(args.dump, addr)
+print(tc)
+rtc.dump_tree_control(tc)
+args.dump.seek(addr, 0)
+data = args.dump.read(tc['tree_control_size'])
+hexdump(data, addr)
+
+print('')
+
+addr = 0x4fc0f8000
+tc = rtc.read_tree_control(args.dump, addr)
+print(tc)
+rtc.dump_tree_control(tc)
+args.dump.seek(addr, 0)
+data = args.dump.read(tc['tree_control_size'])
+hexdump(data, addr)
 
 print('')
 
@@ -196,30 +202,44 @@ args.dump.seek(addr, 0)
 data = args.dump.read(tc_e[1]['tree_control_ext_size'])
 hexdump(data, addr)
 
+print('')
+
 for i, rec in enumerate(tc_e[0]['records']):
+    if i not in [0]:
+        continue
     print('')
 
-    eb_array = rec[0:2]
-    eb_num = eb_array[0] + (256 * eb_array[1])
-    print('{} entryblock number: {:#x}'.format(i, eb_num))
-    addr = offset + (16 * 1024 * eb_num)
+    addr = offset + (16 * 1024 * rec['eb_number'])
+    ot = rot.read_object_tree(args.dump, addr)
+    print(ot)
+    rot.dump_object_tree(ot)
     args.dump.seek(addr, 0)
-    data = args.dump.read(512)
+    data = args.dump.read(ot['_structure_size'])
     hexdump(data, addr)
+
+print('')
 
 for i, rec in enumerate(tc_e[0]['records']):
     if i not in [1, 2, 3]:
         continue
     print('')
 
-    eb_array = rec[0:2]
-    eb_num = eb_array[0] + (256 * eb_array[1])
-    addr = offset + (16 * 1024 * eb_num)
+    addr = offset + (16 * 1024 * rec['eb_number'])
     al = alloc.read_allocator(args.dump, addr)
     print(al)
     alloc.dump_allocator(al)
     args.dump.seek(addr, 0)
-    # data = args.dump.read(al['_structure_size'])
+    data = args.dump.read(al['_structure_size'])
+    # data = args.dump.read(16 * 1024)
+    hexdump(data, addr)
+
+for i, rec in enumerate(tc_e[0]['records']):
+    if i not in [4,5]:
+        continue
+    print('')
+
+    addr = offset + (16 * 1024 * rec['eb_number'])
+    args.dump.seek(addr, 0)
     data = args.dump.read(16 * 1024)
     hexdump(data, addr)
 
