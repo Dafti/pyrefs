@@ -62,12 +62,14 @@ def read_tree_control_ext(dump, offset):
         r_pts.append(r_pt)
     tc_e['record_offsets'] = r_pts
     recs = []
+    tc_e['_records_offset'] = tc_e['record_offsets'][0] if tc_e['record_offsets'] else 0
     for _rec_offset in tc_e['record_offsets']:
         rec_offset = offset + _rec_offset
         dump.seek(rec_offset, 0)
         data = dump.read(TC_EXT_RECORD_FORMAT.size)
         fields = TC_EXT_RECORD_FORMAT.unpack_from(data, 0)
-        rec = {'eb_number': fields[0]}
+        rec = {'_record_offset': rec_offset,
+               'eb_number': fields[0]}
         recs.append(rec)
     tc_e['records'] = recs
     tc_e['_structure_size'] = TC_EXT_RECORD_OFFSET + (tc_e['num_records'] * tc_e['length_record'])
@@ -86,3 +88,8 @@ def dump_tree_control_ext(tc_e):
         for pt in tc_e['record_offsets']:
             print('{:#x} '.format(pt), end='')
         print('')
+    if tc_e['records']:
+        print('- records: <{:#x}>'.format(tc_e['_records_offset']))
+        for i, rec in enumerate(tc_e['records']):
+            print('  - record {}: <{:#x}>'.format(i, rec['_record_offset']))
+            print('    - entryblock number: {:#x}'.format(rec['eb_number']))
