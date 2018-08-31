@@ -37,9 +37,10 @@ def dump_tree_control(tc):
             print('{:#x} '.format(pt), end='')
         print('')
 
-TC_EXT_HEADER_FORMAT = Struct('<Q52sL24sL')
+TC_EXT_HEADER_FORMAT = Struct('<QQ8sQ28sL24sL')
 TC_EXT_RECORD_PTR_FORMAT = Struct('<L')
 TC_EXT_RECORD_OFFSET = 0x98
+TC_EXT_RECORD_FORMAT = Struct('<Q')
 
 def read_tree_control_ext(dump, offset):
     dump.seek(offset, 0)
@@ -47,8 +48,10 @@ def read_tree_control_ext(dump, offset):
     fields = TC_EXT_HEADER_FORMAT.unpack_from(data, 0)
     tc_e = {'absolute_offset': offset,
             'eb_number': fields[0],
-            'length_record': fields[2],
-            'num_records': fields[4]}
+            'counter': fields[1],
+            'node_id': fields[3],
+            'length_record': fields[5],
+            'num_records': fields[7]}
     r_pts = []
     for i in range(tc_e['num_records']):
         r_offset = TC_EXT_HEADER_FORMAT.size + (i * TC_EXT_RECORD_PTR_FORMAT.size)
@@ -61,8 +64,10 @@ def read_tree_control_ext(dump, offset):
     for _rec_offset in tc_e['record_offsets']:
         rec_offset = offset + _rec_offset
         dump.seek(rec_offset, 0)
-        data = dump.read(tc_e['length_record'])
-        recs.append(data)
+        data = dump.read(TC_EXT_RECORD_FORMAT.size)
+        fields = TC_EXT_RECORD_FORMAT.unpack_from(data, 0)
+        rec = {'eb_number': fields[0]}
+        recs.append(rec)
     tc_e['records'] = recs
     tc_e['tree_control_ext_size'] = TC_EXT_RECORD_OFFSET + (tc_e['num_records'] * tc_e['length_record'])
     return tc_e
@@ -70,6 +75,8 @@ def read_tree_control_ext(dump, offset):
 def dump_tree_control_ext(tc_e):
     print('Tree control extension {:#x} ({size},{size:#x}):'.format(tc_e['absolute_offset'], size=tc_e['tree_control_ext_size']))
     print('- entryblock number: {:#x}'.format(tc_e['eb_number']))
+    print('- counter: {}'.format(tc_e['counter']))
+    print('- node id: {:#x}'.format(tc_e['node_id']))
     print('- length of record: {val:#x} ({val})'.format(val=tc_e['length_record']))
     print('- num_records: {}'.format(tc_e['num_records']))
     if tc_e['record_offsets']:
