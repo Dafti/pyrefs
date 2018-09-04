@@ -68,7 +68,7 @@ def print_blocks(blocks):
     if blocks:
         print_table(columns, blocks)
 
-def blocks_with_file_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
+def blocks_with_filename_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
     blocks_found = []
     for block in blocks:
         dump.seek(block['offset'])

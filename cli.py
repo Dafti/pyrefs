@@ -1,8 +1,13 @@
+import argparse
 import cmd, sys
 
 import media.mbr as mbr
 import media.gpt as gpt
 import part.refs.vol as vol
+import part.refs.entry_block as reb
+import part.refs.tree_control as rtc
+import part.refs.allocator as ralloc
+import part.refs.object_tree as rot
 import part.refs.attribute as rattr
 from util.hexdump import hexdump
 import carving
@@ -119,6 +124,16 @@ Please use the 'file' command to set it.''')
         print('Master I found {} blocks.'.format(len(self.blocks)))
         carving.print_blocks(self.blocks)
 
+    def do_find_blocks_with_filenames(self, arg):
+        'Find which blocks have a file attribute.'
+        if not self.blocks:
+            print('Master, first you need to look for the blocks.')
+            print('Please Master, use \'find_blocks\' first.')
+            return
+        blocks = carving.blocks_with_filename_attributes(self.dump_file, self.blocks) 
+        print('Master I found {} blocks with the filename attribute.'.format(len(blocks)))
+        carving.print_blocks(blocks)
+
     def do_find_blocks_with_folders(self, arg):
         'Find which blocks have a folder attribute.'
         if not self.blocks:
@@ -128,6 +143,29 @@ Please use the 'file' command to set it.''')
         blocks = carving.blocks_with_folder_attributes(self.dump_file, self.blocks) 
         print('Master I found {} blocks with the folder attribute.'.format(len(blocks)))
         carving.print_blocks(blocks)
+
+    def do_list_filenames(self, arg):
+        'List the found filenames from the list of blocks with filenames.'
+        if not self.blocks:
+            print('Master, first you need to look for the blocks and blocks with filenames.')
+            print('Please Master, use \'find_blocks\' and \'find_blocks_with_filenames\' first.')
+            return
+        listed = 0
+        for block in self.blocks:
+            if block['fnas']:
+                for fid in block['fnas']:
+                    attr = rattr.read_attribute(self.dump_file, fid)
+                    try:
+                        filename = attr['filename'].decode('utf-16le')
+                    except:
+                        filename = attr['filename']
+                    listed = listed + 1
+                    print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
+                        block['offset'], block['entryblock'],
+                        block['nodeid'], block['childid'], attr['_absolute_offset'], filename))
+        print('Master I listed {} folders.'.format(listed))
+        if not listed:
+            print('Master are you sure you performed \'find_blocks_with_folders\' before?')
 
     def do_list_folders(self, arg):
         'List the found folders from the list of blocks with folders.'
@@ -147,18 +185,31 @@ Please use the 'file' command to set it.''')
                     listed = listed + 1
                     print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
                         block['offset'], block['entryblock'],
-                        block['nodeid'], block['childid'], attr['absolute_offset'], foldername))
+                        block['nodeid'], block['childid'], attr['_absolute_offset'], foldername))
         print('Master I listed {} folders.'.format(listed))
         if not listed:
             print('Master are you sure you performed \'find_blocks_with_folders\' before?')
+
+    def do_hexdump(self, arg):
+        'Hexdump size bytes of the provided offset.'
+        if not arg or len(arg.split()) != 2:
+            print('Please Master indicate the offset and the size of the hexdump.')
+        args = [ int(x, 0) for x in arg.split() ]
+        offset = args[0]
+        size = args[1]
+        self.dump_file.seek(offset, 0)
+        data = self.dump_file.read(size)
+        hexdump(data, offset)
 
     def do_hexblock(self, arg):
         'Hexdump the provided entryblock id.'
         if not arg:
             print('Please Master indicate the block to hexdump.')
+            return
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
+            return
         ebid = int(arg, 0)
         blks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if not blks:
@@ -168,6 +219,105 @@ Please use the 'file' command to set it.''')
         self.dump_file.seek(blk['offset'], 0)
         data = self.dump_file.read(16 * 1024)
         hexdump(data, blk['offset'])
+
+    def do_entryblock(self, arg):
+        'Dump a block as an entryblock.'
+        if not arg:
+            print('Please Master indicate the block to dump as entryblock.')
+            return
+        bid = int(arg, 0)
+        if not self.blocks:
+            print('Master, first you need to look for the blocks.')
+            print('Please Master use \'find_blocks\' first.')
+            return
+        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        if len(blocks) != 1:
+            print('Master, I couldn\'t find the block you asked for.')
+            return
+        block = blocks[0]
+        eb = reb.read_entryblock(self.dump_file, block['offset'])
+        reb.dump_entryblock(eb)
+
+    def do_tree_control(self, arg):
+        'Dump a block as tree control.'
+        if not arg:
+            print('Please Master indicate the block to dump as tree control.')
+            return
+        bid = int(arg, 0)
+        if not self.blocks:
+            print('Master, first you need to look for the blocks.')
+            print('Please Master use \'find_blocks\' first.')
+            return
+        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        if len(blocks) != 1:
+            print('Master, I couldn\'t find the block you asked for.')
+            return
+        block = blocks[0]
+        tc = rtc.read_tree_control(self.dump_file, block['offset'])
+        rtc.dump_tree_control(tc)
+
+    def do_tree_control_extension(self, arg):
+        'Dump a block as tree control extension.'
+        if not arg:
+            print('Please Master indicate the block to dump as tree control extension.')
+            return
+        bid = int(arg, 0)
+        if not self.blocks:
+            print('Master, first you need to look for the blocks.')
+            print('Please Master use \'find_blocks\' first.')
+            return
+        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        if len(blocks) != 1:
+            print('Master, I couldn\'t find the block you asked for.')
+            return
+        block = blocks[0]
+        tce = rtc.read_tree_control_ext(self.dump_file, block['offset'])
+        rtc.dump_tree_control_ext(tce)
+
+    def do_object_tree(self, arg):
+        'Dump a block as object tree.'
+        if not arg:
+            print('Please Master indicate the block to dump as object tree.')
+            return
+        bid = int(arg, 0)
+        if not self.blocks:
+            print('Master, first you need to look for the blocks.')
+            print('Please Master use \'find_blocks\' first.')
+            return
+        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        if len(blocks) != 1:
+            print('Master, I couldn\'t find the block you asked for.')
+            return
+        block = blocks[0]
+        ot = rot.read_object_tree(self.dump_file, block['offset'])
+        rot.dump_object_tree(ot)
+
+    def do_allocator(self, arg):
+        'Dump a block as allocator.'
+        if not arg:
+            print('Please Master indicate the block to dump as allocator.')
+            return
+        bid = int(arg, 0)
+        if not self.blocks:
+            print('Master, first you need to look for the blocks.')
+            print('Please Master use \'find_blocks\' first.')
+            return
+        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        if len(blocks) != 1:
+            print('Master, I couldn\'t find the block you asked for.')
+            return
+        block = blocks[0]
+        al = ralloc.read_allocator(self.dump_file, block['offset'])
+        ralloc.dump_allocator(al)
+
+    def do_attribute(self, arg):
+        'Dump the attribute at the given offset.'
+        if not arg:
+            print('Please Master indicate the offset with the attribute to dump.')
+            return
+        offset = int(arg, 0)
+        attr = rattr.read_attribute(self.dump_file, offset)
+        rattr.dump_attribute(attr)
 
     def do_bye(self, arg):
         'Are you sure?'
@@ -199,4 +349,14 @@ Bye!!!!''')
             self.rec_file = None
 
 if __name__ == '__main__':
-    PyReFSShell().cmdloop()
+    parser = argparse.ArgumentParser(description='ReFS carving on provided dump.')
+    parser.add_argument('-d', '--dump', action='store', required=False, type=str,
+                        help='ReFS dump to analyze')
+    args = parser.parse_args()
+
+    if args.dump:
+        rshell = PyReFSShell()
+        rshell.onecmd('file ' + args.dump)
+        rshell.cmdloop()
+    else:
+        PyReFSShell().cmdloop()

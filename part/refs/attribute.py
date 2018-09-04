@@ -11,20 +11,13 @@ ATTR_HEADER_FORMAT = Struct('<LHHHHHHL')
 
 ATTR_FILENAME_HEADER_FORMAT = Struct('<LHHHHHHL')
 
-ATTR_FOLDER_HEADER_1_FORMAT = Struct('<L6sHLL')
-ATTR_FOLDER_HEADER_2_FORMAT = Struct('<Q2sQQQQ')
-
-ATTR_CHILD_HEADER_FORMAT = Struct('<LHH2sHH2sL4sL4sQ8sHH')
-
 ATTR_TYPE_FILENAME = 0x00010030
-ATTR_TYPE_FOLDER   = 0x00020030
-ATTR_TYPE_CHILD    = 0x80000020
 
 def read_filename_attribute(dump, offset):
     dump.seek(offset, 0)
     data = dump.read(ATTR_FILENAME_HEADER_FORMAT.size)
     data_fields = ATTR_FILENAME_HEADER_FORMAT.unpack_from(data, 0)
-    attr = {'absolute_offset': offset,
+    attr = {'_absolute_offset': offset,
             'size': data_fields[0],
             'header_length': data_fields[1],
             'length': data_fields[2],
@@ -40,11 +33,16 @@ def read_filename_attribute(dump, offset):
     attr['filename'] = fn
     return attr
 
+ATTR_FOLDER_HEADER_1_FORMAT = Struct('<L6sHLL')
+ATTR_FOLDER_HEADER_2_FORMAT = Struct('<Q2sQQQQ')
+
+ATTR_TYPE_FOLDER   = 0x00020030
+
 def read_folder_attribute(dump, offset):
     dump.seek(offset, 0)
     data = dump.read(ATTR_FOLDER_HEADER_1_FORMAT.size)
     data_fields = ATTR_FOLDER_HEADER_1_FORMAT.unpack_from(data, 0)
-    attr = {'absolute_offset': offset,
+    attr = {'_absolute_offset': offset,
             'size': data_fields[0],
             'end_name_offset': data_fields[2],
             'record_rem_data': data_fields[3],
@@ -66,11 +64,15 @@ def read_folder_attribute(dump, offset):
     attr['last_accessed'] = data_fields[5]
     return attr
 
+ATTR_CHILD_HEADER_FORMAT = Struct('<LHH2sHH2sL4sL4sQ8sHH')
+
+ATTR_TYPE_CHILD    = 0x80000020
+
 def read_child_attribute(dump, offset):
     dump.seek(offset, 0)
     data = dump.read(ATTR_CHILD_HEADER_FORMAT.size)
     data_fields = ATTR_CHILD_HEADER_FORMAT.unpack_from(data, 0)
-    attr = {'absolute_offset': offset,
+    attr = {'_absolute_offset': offset,
             'size': data_fields[0],
             'offset_identifier': data_fields[1],
             'header_rem_data': data_fields[2],
