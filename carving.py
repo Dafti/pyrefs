@@ -55,6 +55,20 @@ def find_blocks(dump, lba_offset, lba_end, step = ENTRYBLOCK_SIZE):
             blocks.append(block)
     return blocks
 
+def find_data_blocks_with_pattern(dump, pattern, lba_offset, lba_end, step=ENTRYBLOCK_SIZE):
+    offset = lba_offset * SECTOR_SIZE
+    end = lba_end * SECTOR_SIZE
+    block_offsets = []
+    for i in range(offset,end,step):
+        dump.seek(i, 0)
+        data = dump.read(128)
+        addrs = find_bytes(pattern, data)
+        if addrs:
+            block_offsets.append({'block_offset': int((i - lba_offset)/step),
+                                  'addr': i,
+                                  'lba_offset': int((i - lba_offset)/SECTOR_SIZE)})
+    return block_offsets
+
 def print_blocks(blocks):
     columns = [ {'key': 'offset', 'header': 'Offset', 'align': '<', 'format': '#x'},
                 {'key': 'entryblock', 'header': 'Entryblock', 'align': '<', 'format': '#x'},

@@ -1,5 +1,6 @@
 import argparse
-import cmd, sys
+import cmd
+import sys
 
 import media.mbr as mbr
 import media.gpt as gpt
@@ -123,6 +124,26 @@ Please use the 'file' command to set it.''')
             self.blocks = carving.find_blocks(self.dump_file, offset, end_offset)
         print('Master I found {} blocks.'.format(len(self.blocks)))
         carving.print_blocks(self.blocks)
+
+    def do_find_data_blocks_with_pattern(self, arg):
+        'Find a data pattern in all the blocks of the dump.'
+        offset = self.part['first_lba']
+        end_offset = self.part['last_lba']
+        if not arg:
+            print('Master I need a pattern, and only one.')
+            return
+        pattern = [ ord(x) for x in arg ]
+        print('Master I will be analyzing your pattern \'{}\' ({}) but it may take a while.'.format(
+            arg, pattern))
+        print('Do you want a cup of tea?')
+        blocks = carving.find_data_blocks_with_pattern(self.dump_file, pattern, offset, end_offset)
+        print('Master I found {} blocks with your wiseful pattern.'.format(len(blocks)))
+        if blocks:
+            print('{:<16} {:<16} {:<16}'.format('Address', 'LBA offset', 'Block offset'))
+            for block in blocks:
+                print('{:<#16x} {:<#16x} {:<#16x}'.format(block['addr'],
+                                                          block['lba_offset'],
+                                                          block['block_offset']))
 
     def do_find_blocks_with_filenames(self, arg):
         'Find which blocks have a file attribute.'
