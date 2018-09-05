@@ -74,7 +74,7 @@ def blocks_with_filename_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
         dump.seek(block['offset'])
         data = dump.read(block_size)
         fileids = find_bytes([0x30,0,1,0], data)
-        if fileids or folderids:
+        if fileids:
             block['fnas'] = [ x + block['offset'] - 0x10 for x in fileids ]
             blocks_found.append(block)
     return blocks_found
