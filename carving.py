@@ -74,19 +74,28 @@ def blocks_with_filename_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
         dump.seek(block['offset'])
         data = dump.read(block_size)
         fileids = find_bytes([0x30,0,1,0], data)
-        folderids = find_bytes([0x30,0,2,0], data)
         if fileids or folderids:
             block['fnas'] = [ x + block['offset'] - 0x10 for x in fileids ]
-            block['folderids'] = [ x + block['offset'] - 0x10 for x in folderids ]
             blocks_found.append(block)
     return blocks_found
 
 def blocks_with_folder_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
     blocks_found = []
     for block in blocks:
-        dump.seek(block['offset'])
+        dump.seek(block['offset'], 0)
         data = dump.read(block_size)
-        folderids = find_bytes([0x30,0,2,0], data)
+        _folderids = find_bytes([0x30,0,2,0], data)
+        folderids = []
+        # this loop tries to check that the pattern found is in a filename_folder
+        # attribute
+        # TODO: find a better way to determine if the pattern is in a filename_folder
+        # attribute or in a folder attribute
+        for fid in _folderids:
+            dump.seek(fid + block['offset'] - 0x10 + 0x4, 0)
+            data = dump.read(2)
+            offset = data[0] + (data[1] * 256)
+            if offset == 0x10:
+                folderids.append(fid)
         if folderids:
             block['folderids'] = [ x + block['offset'] - 0x10 for x in folderids ]
             blocks_found.append(block)
