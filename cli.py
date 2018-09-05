@@ -163,7 +163,7 @@ Please use the 'file' command to set it.''')
                     print('{:#010x} {:#06x} {:#06x} {:#06x} {:#010x} {}'.format(
                         block['offset'], block['entryblock'],
                         block['nodeid'], block['childid'], attr['_absolute_offset'], filename))
-        print('Master I listed {} folders.'.format(listed))
+        print('Master I listed {} filenames.'.format(listed))
         if not listed:
             print('Master are you sure you performed \'find_blocks_with_folders\' before?')
 
