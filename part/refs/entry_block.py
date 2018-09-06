@@ -48,15 +48,25 @@ def read_entryblock(dump, offset):
     eb['offset_free_record'] = fields[1]
     eb['free_space'] = fields[2]
     eb['header_unknown'] = fields[3]
-    eb['offset_first_pointer'] = fields[4] + eb['node_header_offset']
+    eb['offset_first_pointer'] = fields[4]
     eb['num_pointers'] = fields[5]
-    eb['offset_end_node'] = fields[6] # should we add the node header offset ?
+    eb['offset_end_node'] = fields[6]
+    if eb['num_pointers']:
+        pointers_format = Struct('<' + ('L' * eb['num_pointers']))
+        dump.seek(offset + eb['node_header_offset'] + eb['offset_first_pointer'], 0)
+        data = dump.read(pointers_format.size)
+        fields = pointers_format.unpack_from(data, 0)
+        eb['pointers'] = fields
+        eb['pointers_data'] = []
+    else:
+        eb['pointers'] = None
+        eb['pointers_data'] = None
     eb['_structure_size'] = (eb['_structure_size'] +
-                             EB_NODE_HEADER_FORMAT.size)
-    eb['records'] = []
-    for rec_i in range(eb['num_records']):
-        attr = rattr.read_attribute(dump, eb['_structure_size'] + offset)
-        eb['records'].append(attr)
+                             eb['header_length'])
+    for ptr in eb['pointers']:
+        ptr_addr = offset + eb['node_header_offset'] + ptr
+        attr = rattr.read_attribute(dump, ptr_addr)
+        eb['pointers_data'].append(attr)
         eb['_structure_size'] = eb['_structure_size'] + attr['size']
     return eb
 
@@ -74,11 +84,22 @@ def dump_entryblock(eb):
     print('- offset to next free record: {val:#x} ({val})'.format(val=eb['offset_free_record']))
     print('- free space in node: {val:#x} ({val})'.format(val=eb['free_space']))
     print('- node header unknown: {val:#x} ({val})'.format(val=eb['header_unknown']))
-    print('- offset to first pointer: {val:#x} ({val})'.format(val=eb['offset_first_pointer']))
+    print('- offset to first pointer: {val:#x} ({val}) -> entryblock offset: {ebo:#x}'.format(
+        val=eb['offset_first_pointer'],
+        ebo=eb['offset_first_pointer']+eb['node_header_offset']))
     print('- number of pointers in node: {}'.format(eb['num_pointers']))
-    print('- offset to end node: {val:#x} ({val})'.format(val=eb['offset_end_node']))
-    if eb['records']:
-        print('- records:')
-        for rec_i, rec in enumerate(eb['records']):
-            print('  - record {}: <{:#x}>'.format(rec_i, rec['_absolute_offset']))
-            rattr.dump_attribute(rec, '    ')
+    print('- offset to end node: {val:#x} ({val}) -> entryblock offset: {ebo:#x}'.format(
+        val=eb['offset_end_node'],
+        ebo=eb['offset_end_node']+eb['node_header_offset']))
+    print('- pointers:', end='')
+    if eb['pointers']:
+        for ptr in eb['pointers']:
+            print(' {:#x}'.format(ptr), end='')
+        print('')
+        print('- pointers data:')
+        for ptr_i, ptr in enumerate(eb['pointers_data']):
+            print('  - pointer {}: <{:#x}>'.format(ptr_i, ptr['_absolute_offset']))
+            rattr.dump_attribute(ptr, '    ')
+    else:
+        print('None')
+        print('- pointers data: None')
