@@ -423,7 +423,7 @@ def _dump_dm_folder_subattribute(attr, prefix=''):
     print('{}- record remaining data (copy?): {val:#x} ({val})'.format(prefix,
                                                                        val=attr['record_rem_data_copy']))
     print('{}- unknown field 1: {val:#x} ({val})'.format(prefix, val=attr['unknown1']))
-    print('{}- type: {:#x} ($I30 type)'.format(prefix, attr['type']))
+    print('{}- type: {:#x} (directory metadata folder type)'.format(prefix, attr['type']))
     print('{}- parent node id: {:#x}'.format(prefix, attr['parentid']))
     print('{}- created: {} ({})'.format(prefix,
                                         time.asctime(time.gmtime(attr['created']/10000000000)),
