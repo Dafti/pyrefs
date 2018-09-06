@@ -412,7 +412,6 @@ Bye!!!!''')
             self.cmdqueue.extend(f.read().splitlines())
 
     def precmd(self, line):
-        line = line.lower()
         if self.rec_file and 'playback' not in line:
             print(line, file=self.rec_file)
         return line
