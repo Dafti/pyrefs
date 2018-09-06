@@ -147,7 +147,10 @@ def read_filename_attribute(dump, offset):
     attr['_offset_metadata'] = attr['next_struct_offset']
     attr['metadata'] = read_filename_attribute_metadata(dump, offset + attr['_offset_metadata'])
     attr['_offset_datarun'] = attr['_offset_metadata'] + attr['metadata']['size']
-    attr['datarun'] = read_filename_attribute_datarun(dump, offset + attr['_offset_datarun'])
+    if attr['metadata']['physical_size'] == 0:
+        attr['datarun'] = None
+    else:
+        attr['datarun'] = read_filename_attribute_datarun(dump, offset + attr['_offset_datarun'])
     return attr
 
 def _dump_filename_attribute(attr, prefix=''):
@@ -160,8 +163,11 @@ def _dump_filename_attribute(attr, prefix=''):
     print('{}- filename: {}'.format(prefix, attr['filename'].decode('utf-16le')))
     print('{}- metadata: <{:#x}>'.format(prefix, attr['metadata']['_absolute_offset']))
     _dump_filename_attribute_metadata(attr['metadata'], prefix + '  ')
-    print('{}- datarun: <{:#x}>'.format(prefix, attr['datarun']['_absolute_offset']))
-    _dump_filename_attribute_datarun(attr['datarun'], prefix + '  ')
+    if attr['datarun']:
+        print('{}- datarun: <{:#x}>'.format(prefix, attr['datarun']['_absolute_offset']))
+        _dump_filename_attribute_datarun(attr['datarun'], prefix + '  ')
+    else:
+        print('{}- datarun: None'.format(prefix))
 
 ATTR_FILENAME_FOLDER_HEADER_1_FORMAT = Struct('<L6sHLL')
 ATTR_FILENAME_FOLDER_HEADER_2_FORMAT = Struct('<Q2sQQQQ')
