@@ -91,16 +91,17 @@ def read_filename_attribute_datarun_entry(dump, offset):
         attr['pointers'] = None
         attr['pointers_data'] = None
     attr['_structure_size'] = attr['_body_list_offset'] + attr['body_list_size']
-    for ptr in attr['pointers']:
-        ptr_addr = offset + attr['_body_list_offset'] + ptr
-        dump.seek(ptr_addr, 0)
-        data = dump.read(ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT.size)
-        fields = ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT.unpack_from(data, 0)
-        entry = {'_absolute_offset': ptr_addr,
-                 'size': fields[0],
-                 'num_blocks': fields[2],
-                 'blockid': fields[3]}
-        attr['pointers_data'].append(entry)
+    if attr['pointers']:
+        for ptr in attr['pointers']:
+            ptr_addr = offset + attr['_body_list_offset'] + ptr
+            dump.seek(ptr_addr, 0)
+            data = dump.read(ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT.size)
+            fields = ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT.unpack_from(data, 0)
+            entry = {'_absolute_offset': ptr_addr,
+                     'size': fields[0],
+                     'num_blocks': fields[2],
+                     'blockid': fields[3]}
+            attr['pointers_data'].append(entry)
     return attr
 
 def _dump_filename_attribute_datarun_entry(attr, prefix=''):
