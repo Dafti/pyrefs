@@ -1,0 +1,10 @@
+file resilient_fs.raw.001
+find_blocks
+find_blocks_with_filenames
+find_blocks_with_folders
+list_folders
+list_filenames
+list_dataruns
+datastream 070601-014_1.JPEG 0x3339c 0x580 16
+datastream HashMyFiles.cfg 0x2f9 0x3b04 4
+bye

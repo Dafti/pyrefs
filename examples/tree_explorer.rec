@@ -1,0 +1,43 @@
+file resilient_fs.raw.001
+find_blocks
+tree_control 0x1e
+tree_control_extension 0x32d8
+object_tree 0x549
+entryblock 0x600
+entryblock 0x564
+entryblock 0x590
+entryblock 0x591
+entryblock 0x592
+entryblock 0x593
+entryblock 0x604
+entryblock 0x605
+entryblock 0x606
+entryblock 0x607
+entryblock 0x628
+entryblock 0x629
+entryblock 0x62a
+entryblock 0x62b
+entryblock 0x64c
+entryblock 0x64d
+entryblock 0x64d
+entryblock 0x64e
+entryblock 0x64f
+entryblock 0x660
+entryblock 0x661
+entryblock 0x662
+entryblock 0x663
+entryblock 0x690
+entryblock 0x691
+entryblock 0x692
+entryblock 0x693
+entryblock 0x698
+entryblock 0x699
+entryblock 0x69b
+entryblock 0x69c
+entryblock 0x69d
+entryblock 0x69e
+entryblock 0x69f
+entryblock 0x34b5
+entryblock 0x34b9
+datastream FTKImager_UserGuide.pdf 0x9df38 0x34bc 40
+bye
