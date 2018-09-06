@@ -23,7 +23,7 @@ def hexdump(data, address=0, width=16):
         elif index == last_range:
             if skip > 0:
                 print(backup)
-                print(line)
+            print(line)
         elif list(filter(lambda x: x != 0, buf)):
             if skip:
                 print(backup)
