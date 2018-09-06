@@ -340,6 +340,59 @@ Please use the 'file' command to set it.''')
         attr = rattr.read_attribute(self.dump_file, offset)
         rattr.dump_attribute(attr)
 
+    def do_datastream(self, arg):
+        '''Extract data from dump from the given datarun.
+Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 2> <num blocks blockid 2> ...'''
+        parms = arg.split()
+        ofn = parms[0]
+        size = int(parms[1], 0)
+        dataruns = [ (int(parms[i], 0), int(parms[i+1], 0)) for i in range(2,len(parms),2) ]
+        of = open(ofn, 'wb')
+        for offset, length in dataruns:
+            offset = (offset * 1024 * 16) + (self.part['first_lba'] * 512)
+            length = length * 1024 * 16
+            if length > size:
+                length = size
+            size = size - length
+            self.dump_file.seek(offset, 0)
+            data = self.dump_file.read(length)
+            of.write(data)
+        of.close()
+
+    def do_list_dataruns(self, arg):
+        'List of the dataruns of all the files.'
+        files = 0
+        drs = 0
+        for block in self.blocks:
+            if block['fnas']:
+                for fid in block['fnas']:
+                    files = files + 1
+                    attr = rattr.read_attribute(self.dump_file, fid)
+                    dataruns = []
+                    if attr['datarun'] and attr['datarun']['pointers_data']:
+                        for ptr in attr['datarun']['pointers_data']:
+                            if ptr['pointers_data']:
+                                datarun = [ (x['blockid'], x['num_blocks']) for x in ptr['pointers_data'] ]
+                                dataruns.append((ptr['logical_size'], datarun))
+                                drs = drs + 1
+                    try:
+                        filename = attr['filename'].decode('utf-16le')
+                    except:
+                        filename = attr['filename']
+                    print('{:#010x} {:#06x} {:#06x} {:6} {}'.format(
+                        block['offset'], block['entryblock'],
+                        block['nodeid'], block['counter'], filename))
+                    for length, datarun in dataruns:
+                        print('  {:#x}'.format(length), end='')
+                        for run in datarun:
+                            blockid,num = run
+                            print(' {:#x} {}'.format(blockid,num), end='')
+                        print('')
+        if files:
+            print('Master I listed {} data runs from {} files.'.format(drs, files))
+        else:
+            print('Master I could not find any file, did you already execute \'find_blocks_with_filenames\'?')
+
     def do_bye(self, arg):
         'Are you sure?'
         print('''It's been a great to serve you master.
