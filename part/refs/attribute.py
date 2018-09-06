@@ -44,6 +44,9 @@ def _dump_filename_attribute_metadata(attr, prefix=''):
     print('{}- physical size: {val:#x} ({val})'.format(prefix, val=attr['physical_size']))
 
 ATTR_FN_DATARUN_ENTRY_HEADER_FORMAT = Struct('<LHHHHLLLL')
+ATTR_FN_DATARUN_ENTRY_BODY_FORMAT = Struct('<L48sQQ')
+ATTR_FN_DATARUN_ENTRY_BODY_LIST_FORMAT = Struct('<LLL4sLLL')
+ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT = Struct('<L20sQQ')
 
 def read_filename_attribute_datarun_entry(dump, offset):
     dump.seek(offset, 0)
@@ -55,10 +58,49 @@ def read_filename_attribute_datarun_entry(dump, offset):
             'unknown1': fields[2],
             'unknown2': fields[3],
             'header_size': fields[4],
-            'body_size': fields[5],
+            'header_body_size': fields[5],
             'body_size_copy': fields[6],
             'unknown3': fields[7],
             'attributeid?': fields[8]}
+    attr['_body_offset'] = attr['header_size']
+    dump.seek(offset + attr['_body_offset'], 0)
+    data = dump.read(ATTR_FN_DATARUN_ENTRY_BODY_FORMAT.size)
+    fields = ATTR_FN_DATARUN_ENTRY_BODY_FORMAT.unpack_from(data, 0)
+    attr['body_size'] = fields[0]
+    # NOTE: This is wrong in the thesis, logical comes before physical
+    attr['logical_size'] = fields[2]
+    attr['physical_size'] = fields[3]
+    attr['_body_list_offset'] = attr['_body_offset'] + attr['body_size']
+    dump.seek(offset + attr['_body_list_offset'], 0)
+    data = dump.read(ATTR_FN_DATARUN_ENTRY_BODY_LIST_FORMAT.size)
+    fields = ATTR_FN_DATARUN_ENTRY_BODY_LIST_FORMAT.unpack_from(data, 0)
+    attr['body_list_size'] = fields[0]
+    attr['body_list_offset_next_record'] = fields[1]
+    attr['body_list_free_space'] = fields[2]
+    attr['offset_pointers'] = fields[4]
+    attr['num_pointers'] = fields[5]
+    attr['body_list_end_struct'] = fields[6]
+    if attr['num_pointers']:
+        pointers_format = Struct('<' + ('L' * attr['num_pointers']))
+        dump.seek(offset + attr['_body_list_offset'] + attr['offset_pointers'], 0)
+        data = dump.read(pointers_format.size)
+        fields = pointers_format.unpack_from(data, 0)
+        attr['pointers'] = fields
+        attr['pointers_data'] = []
+    else:
+        attr['pointers'] = None
+        attr['pointers_data'] = None
+    attr['_structure_size'] = attr['_body_list_offset'] + attr['body_list_size']
+    for ptr in attr['pointers']:
+        ptr_addr = offset + attr['_body_list_offset'] + ptr
+        dump.seek(ptr_addr, 0)
+        data = dump.read(ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT.size)
+        fields = ATTR_FN_DATARUN_ENTRY_BODY_LIST_ENTRY_FORMAT.unpack_from(data, 0)
+        entry = {'_absolute_offset': ptr_addr,
+                 'size': fields[0],
+                 'num_blocks': fields[2],
+                 'blockid': fields[3]}
+        attr['pointers_data'].append(entry)
     return attr
 
 def _dump_filename_attribute_datarun_entry(attr, prefix=''):
@@ -67,10 +109,35 @@ def _dump_filename_attribute_datarun_entry(attr, prefix=''):
     print('{}- unknown field 1: {val:#x} ({val})'.format(prefix, val=attr['unknown1']))
     print('{}- unknown field 2: {val:#x} ({val})'.format(prefix, val=attr['unknown2']))
     print('{}- header size: {val:#x} ({val})'.format(prefix, val=attr['header_size']))
-    print('{}- body size: {val:#x} ({val})'.format(prefix, val=attr['body_size']))
+    print('{}- body size (info in header): {val:#x} ({val})'.format(prefix, val=attr['header_body_size']))
     print('{}- body size (copy): {val:#x} ({val})'.format(prefix, val=attr['body_size_copy']))
     print('{}- unknown field 3: {val:#x} ({val})'.format(prefix, val=attr['unknown3']))
     print('{}- attribute type identifier: {:#010x}'.format(prefix, attr['attributeid?']))
+    print('{}- body size: {val:#x} ({val})'.format(prefix, val=attr['body_size']))
+    print('{}- logical size: {val:#x} ({val})'.format(prefix, val=attr['logical_size']))
+    print('{}- physical size: {val:#x} ({val})'.format(prefix, val=attr['physical_size']))
+    print('{}- body list size: {val:#x} ({val})'.format(prefix, val=attr['body_list_size']))
+    print('{}- body list offset to next record: {val:#x} ({val})'.format(prefix,
+        val=attr['body_list_offset_next_record']))
+    print('{}- body list free space: {val:#x} ({val})'.format(prefix, val=attr['body_list_free_space']))
+    print('{}- offset to pointers: {val:#x} ({val})'.format(prefix, val=attr['offset_pointers']))
+    print('{}- number of pointers: {}'.format(prefix, attr['num_pointers']))
+    print('{}- body list end of structure: {val:#x} ({val})'.format(prefix,
+        val=attr['body_list_end_struct']))
+    if attr['pointers']:
+        print('{}- pointers:'.format(prefix), end='')
+        for ptr in attr['pointers']:
+            print(' {:#x}'.format(ptr), end='')
+        print('')
+        print('{}- pointers data:'.format(prefix))
+        for ptr_i, ptr in enumerate(attr['pointers_data']):
+            print('{}  - pointer {}: <{:#x}>'.format(prefix, ptr_i, ptr['_absolute_offset']))
+            print('{}    - entry size: {val:#x} ({val})'.format(prefix, val=ptr['size']))
+            print('{}    - number of blocks/clusters: {}'.format(prefix, ptr['num_blocks']))
+            print('{}    - block identifier: {:#x}'.format(prefix, ptr['blockid']))
+    else:
+        print('{}- pointers: None'.format(prefix))
+        print('{}- pointers data: None'.format(prefix))
 
 ATTR_FN_DATARUN_HEADER_FORMAT = Struct('<LLLLLLL')
 
