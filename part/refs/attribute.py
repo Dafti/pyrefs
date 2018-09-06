@@ -68,8 +68,8 @@ def read_filename_attribute_datarun_entry(dump, offset):
     fields = ATTR_FN_DATARUN_ENTRY_BODY_FORMAT.unpack_from(data, 0)
     attr['body_size'] = fields[0]
     # NOTE: This is wrong in the thesis, logical comes before physical
-    attr['logical_size'] = fields[2]
-    attr['physical_size'] = fields[3]
+    attr['physical_size'] = fields[2]
+    attr['logical_size'] = fields[3]
     attr['_body_list_offset'] = attr['_body_offset'] + attr['body_size']
     dump.seek(offset + attr['_body_list_offset'], 0)
     data = dump.read(ATTR_FN_DATARUN_ENTRY_BODY_LIST_FORMAT.size)
