@@ -329,7 +329,7 @@ def _dump_child_attribute(attr, prefix=''):
     print('{}- record type: {:#x} (child attribute)'.format(prefix, attr['type']))
     print('{}- parent id: {:#x}'.format(prefix, attr['parentid']))
     print('{}- child id: {:#x}'.format(prefix, attr['childid']))
-    print('{}- 000c: {:x}'.format(prefix, attr['000c']))
+    print('{}- 0x000c: {:#06x}'.format(prefix, attr['000c']))
     print('{}- filename: {}'.format(prefix, attr['filename'].decode('utf-16le')))
 
 ATTR_DIR_METADATA_HEADER_FORMAT = Struct('<LHHHHHH')
