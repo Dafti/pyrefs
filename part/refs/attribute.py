@@ -237,42 +237,55 @@ def _dump_filename_attribute(attr, prefix=''):
     else:
         print('{}- datarun: None'.format(prefix))
 
-ATTR_FILENAME_FOLDER_HEADER_1_FORMAT = Struct('<L6sHLL')
-ATTR_FILENAME_FOLDER_HEADER_2_FORMAT = Struct('<Q2sQQQQ')
+ATTR_FILENAME_FOLDER_HEADER_1_FORMAT = Struct('<LHHHHHH')
+ATTR_FILENAME_FOLDER_HEADER_2_FORMAT = Struct('<L')
+ATTR_FILENAME_FOLDER_BODY_FORMAT = Struct('<Q8sQQQQ')
 
 ATTR_TYPE_FILENAME_FOLDER   = 0x00020030
 
 def read_filename_folder_attribute(dump, offset):
     dump.seek(offset, 0)
     data = dump.read(ATTR_FILENAME_FOLDER_HEADER_1_FORMAT.size)
-    data_fields = ATTR_FILENAME_FOLDER_HEADER_1_FORMAT.unpack_from(data, 0)
+    fields = ATTR_FILENAME_FOLDER_HEADER_1_FORMAT.unpack_from(data, 0)
     attr = {'_absolute_offset': offset,
-            'size': data_fields[0],
-            'end_name_offset': data_fields[2],
-            'record_rem_data': data_fields[3],
-            'type': data_fields[4]}
-    f_size = attr['end_name_offset'] - (ATTR_TYPE_OFFSET + ATTR_TYPE_SIZE)
+            'size': fields[0],
+            'offset_identifier': fields[1],
+            'header_rem_data': fields[2],
+            'unknown0': fields[3],
+            'header_length': fields[4],
+            'record_rem_data': fields[5],
+            'unknown1': fields[6]}
+    dump.seek(offset + attr['offset_identifier'], 0)
+    data = dump.read(ATTR_FILENAME_FOLDER_HEADER_2_FORMAT.size)
+    fields = ATTR_FILENAME_FOLDER_HEADER_2_FORMAT.unpack_from(data, 0)
+    attr['type'] = fields[0]
+    # f_size = attr['header_length'] - (attr['offset_identifier'] + ATTR_TYPE_SIZE)
+    f_size = attr['header_rem_data'] - ATTR_TYPE_SIZE
     if f_size > 0:
-        dump.seek(offset + ATTR_TYPE_OFFSET + ATTR_TYPE_SIZE, 0)
+        dump.seek(offset + attr['offset_identifier'] + ATTR_TYPE_SIZE, 0)
         fn = dump.read(f_size)
     else:
         fn = 'DEADBEEF'.encode('utf-16le')
     attr['foldername'] = fn
-    dump.seek(offset + attr['end_name_offset'], 0)
-    data = dump.read(ATTR_FILENAME_FOLDER_HEADER_2_FORMAT.size)
-    data_fields = ATTR_FILENAME_FOLDER_HEADER_2_FORMAT.unpack_from(data, 0)
-    attr['nodeid'] = data_fields[0]
-    attr['created'] = data_fields[2]
-    attr['modified'] = data_fields[3]
-    attr['metadata_modified'] = data_fields[4]
-    attr['last_accessed'] = data_fields[5]
+    dump.seek(offset + attr['header_length'], 0)
+    data = dump.read(ATTR_FILENAME_FOLDER_BODY_FORMAT.size)
+    fields = ATTR_FILENAME_FOLDER_BODY_FORMAT.unpack_from(data, 0)
+    attr['nodeid'] = fields[0]
+    attr['created'] = fields[2]
+    attr['modified'] = fields[3]
+    attr['metadata_modified'] = fields[4]
+    attr['last_accessed'] = fields[5]
     return attr
 
 def _dump_filename_folder_attribute(attr, prefix=''):
     print('{}- size: {val:#x} ({val})'.format(prefix, val=attr['size']))
-    print('{}- end name offset: {val:#x} ({val})'.format(prefix, val=attr['end_name_offset']))
+    print('{}- offset of identifier: {val:#x} ({val})'.format(prefix, val=attr['offset_identifier']))
+    print('{}- header remaining bytes: {val:#x} ({val})'.format(prefix, val=attr['header_rem_data']))
+    print('{}- unknown field 0: {:#x}'.format(prefix, attr['unknown0']))
+    print('{}- header length: {val:#x} ({val})'.format(prefix, val=attr['header_length']))
     print('{}- record remaining data: {val:#x} ({val})'.format(prefix, val=attr['record_rem_data']))
-    print('{}- record type: {:#x} (filename folder attribute)'.format(prefix, attr['type']))
+    print('{}- unknown field 1: {:#x}'.format(prefix, attr['unknown1']))
+    print('{}- type: {:#x} (filename folder attribute)'.format(prefix, attr['type']))
     print('{}- foldername: {}'.format(prefix, attr['foldername'].decode('utf-16le')))
     print('{}- node identifier: {:#x}'.format(prefix, attr['nodeid']))
     print('{}- created: {} ({})'.format(prefix,
