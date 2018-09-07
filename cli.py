@@ -11,6 +11,7 @@ import part.refs.allocator as ralloc
 import part.refs.object_tree as rot
 import part.refs.attribute as rattr
 from util.hexdump import hexdump
+from util.filetree import filetree, dump_filetree
 import carving
 
 class PyReFSShell(cmd.Cmd):
@@ -392,6 +393,19 @@ Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 
             print('Master I listed {} data runs from {} files.'.format(drs, files))
         else:
             print('Master I could not find any file, did you already execute \'find_blocks_with_filenames\'?')
+
+    def do_filetree(self, arg):
+        'Extract the file tree structure from the given node (use node 0x600 by default)'
+        nodeid = 0x600
+        if arg:
+            nodeid = int(arg, 0)
+        block_list = None
+        if self.blocks:
+            block_list = self.blocks
+        offset = self.part['first_lba']
+        end_offset = self.part['last_lba']
+        tree = filetree(self.dump_file, offset, end_offset, nodeid, block_list)
+        dump_filetree(tree)
 
     def do_bye(self, arg):
         'Are you sure?'
