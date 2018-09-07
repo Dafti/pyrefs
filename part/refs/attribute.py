@@ -1,4 +1,4 @@
-import time
+from util.time import bytes2time
 from struct import Struct
 
 ATTR_SIZE_OFFSET = 0
@@ -32,10 +32,12 @@ def read_filename_attribute_metadata(dump, offset):
 def _dump_filename_attribute_metadata(attr, prefix=''):
     print('{}- size: {val:#x} ({val})'.format(prefix, val=attr['size']))
     print('{}- offset to first value(?): {val:#x} ({val})'.format(prefix, val=attr['offset_to_val?']))
-    print('{}- created: {:#x}'.format(prefix, attr['created']))
-    print('{}- modified: {:#x}'.format(prefix, attr['modified']))
-    print('{}- metadata modified: {:#x}'.format(prefix, attr['metadata_modified']))
-    print('{}- last accessed: {:#x}'.format(prefix, attr['last_accessed']))
+    print('{}- created: {} ({:#x})'.format(prefix, bytes2time(attr['created']), attr['created']))
+    print('{}- modified: {} ({:#x})'.format(prefix, bytes2time(attr['modified']), attr['modified']))
+    print('{}- metadata modified: {} ({:#x})'.format(prefix, bytes2time(attr['metadata_modified']),
+                                                     attr['metadata_modified']))
+    print('{}- last accessed: {} ({:#x})'.format(prefix, bytes2time(attr['last_accessed']),
+                                                 attr['last_accessed']))
     print('{}- flags: {:#x}'.format(prefix, attr['flags']))
     print('{}- parent node id: {:#x}'.format(prefix, attr['parentid']))
     print('{}- child node id: {:#x}'.format(prefix, attr['childid']))
@@ -288,14 +290,12 @@ def _dump_filename_folder_attribute(attr, prefix=''):
     print('{}- type: {:#x} (filename folder attribute)'.format(prefix, attr['type']))
     print('{}- foldername: {}'.format(prefix, attr['foldername'].decode('utf-16le')))
     print('{}- node identifier: {:#x}'.format(prefix, attr['nodeid']))
-    print('{}- created: {} ({})'.format(prefix,
-                                        time.asctime(time.gmtime(attr['created']/10000000000)),
-                                        attr['created']/10000000000))
-    print('{}- modified: {} ({})'.format(prefix,
-                                        time.asctime(time.gmtime(attr['modified']/10000000000)),
-                                        attr['modified']/10000000000))
-    print('{}- metadata modified: {:#x}'.format(prefix, attr['metadata_modified']))
-    print('{}- last accessed: {:#x}'.format(prefix, attr['last_accessed']))
+    print('{}- created: {} ({:#x})'.format(prefix, bytes2time(attr['created']), attr['created']))
+    print('{}- modified: {} ({:#x})'.format(prefix, bytes2time(attr['modified']), attr['modified']))
+    print('{}- metadata modified: {} ({:#x})'.format(prefix, bytes2time(attr['metadata_modified']),
+                                                     attr['metadata_modified']))
+    print('{}- last accessed: {} ({:#x})'.format(prefix, bytes2time(attr['last_accessed']),
+                                                 attr['last_accessed']))
 
 ATTR_CHILD_HEADER_FORMAT = Struct('<LHH2sHH2sL4sL4sQ8sHH')
 
@@ -405,10 +405,14 @@ def _dump_directory_metadata_attribute(attr, prefix=''):
     print('{}  - length: {val:#x} ({val})'.format(prefix, val=attr['body_length']))
     print('{}  - offset_first_timestamp: {val:#x} ({val})'.format(prefix,
                                                                   val=attr['offset_first_timestamp']))
-    print('{}  - created: {:#x}'.format(prefix, attr['created']))
-    print('{}  - modified: {:#x}'.format(prefix, attr['modified']))
-    print('{}  - metadata modified: {:#x}'.format(prefix, attr['metadata_modified']))
-    print('{}  - last accessed: {:#x}'.format(prefix, attr['last_accessed']))
+    print('{}  - created: {} ({:#x})'.format(prefix, bytes2time(attr['created']), attr['created']))
+    print('{}  - modified: {} ({:#x})'.format(prefix, bytes2time(attr['modified']),
+                                                                      attr['modified']))
+    print('{}  - metadata modified: {} ({:#x})'.format(prefix,
+                                                       bytes2time(attr['metadata_modified']),
+                                                       attr['metadata_modified']))
+    print('{}  - last accessed: {} ({:#x})'.format(prefix, bytes2time(attr['last_accessed']),
+                                                   attr['last_accessed']))
     print('{}  - node id: {:#x}'.format(prefix, attr['nodeid']))
     print('{}- pointers section: <{:#x}>'.format(prefix,
                                                  attr['_absolute_offset'] + attr['_offset_psec']))
@@ -512,18 +516,12 @@ def _dump_dm_folder_subattribute(attr, prefix=''):
     print('{}- unknown field 1: {val:#x} ({val})'.format(prefix, val=attr['unknown1']))
     print('{}- type: {:#x} (directory metadata folder type)'.format(prefix, attr['type']))
     print('{}- parent node id: {:#x}'.format(prefix, attr['parentid']))
-    print('{}- created: {} ({})'.format(prefix,
-                                        time.asctime(time.gmtime(attr['created']/10000000000)),
-                                        attr['created']/10000000000))
-    print('{}- modified: {} ({})'.format(prefix,
-                                        time.asctime(time.gmtime(attr['modified']/10000000000)),
-                                        attr['modified']/10000000000))
-    print('{}- metadata modified: {} ({})'.format(prefix,
-                                        time.asctime(time.gmtime(attr['metadata_modified']/10000000000)),
-                                        attr['metadata_modified']/10000000000))
-    print('{}- last accessed: {} ({})'.format(prefix,
-                                        time.asctime(time.gmtime(attr['last_accessed']/10000000000)),
-                                        attr['last_accessed']/10000000000))
+    print('{}- created: {} ({:#x})'.format(prefix, bytes2time(attr['created']), attr['created']))
+    print('{}- modified: {} ({:#x})'.format(prefix, bytes2time(attr['modified']), attr['modified']))
+    print('{}- metadata modified: {} ({:#x})'.format(prefix, bytes2time(attr['metadata_modified']),
+                                                     attr['metadata_modified']))
+    print('{}- last accessed: {} ({:#x})'.format(prefix, bytes2time(attr['last_accessed']),
+                                                 attr['last_accessed']))
     print('{}- folder name size: {val:#x} ({val})'.format(prefix, val=attr['name_size']))
     print('{}- folder name: {}'.format(prefix, attr['name'].decode('utf-16le')))
 
