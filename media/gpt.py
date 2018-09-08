@@ -90,6 +90,16 @@ def readGPT(stream, offset=1):
     _gpt_add_partitions(gpt, parts)
     return gpt
 
+def print_gpt_part(part, prefix=''):
+    print('{}Partition {}:'.format(prefix, part['index']))
+    print('{}  Type (GUID type): {} ({})'.format(prefix,
+                                                 GUID_TRANSLATION[part['type']], part['type']))
+    print('{}  GUID: {}'.format(prefix, part['guid']))
+    print('{}  First LBA: {}'.format(prefix, part['first_lba']))
+    print('{}  Last LBA: {}'.format(prefix, part['last_lba']))
+    print('{}  Attributes: {}'.format(prefix, part['attr']))
+    print('{}  Name: {}'.format(prefix, part['name']))
+
 def print_gpt(gpt):
     print('GPT media')
     print('Signature: {}'.format(gpt['signature'].decode('utf-8')))
@@ -107,10 +117,4 @@ def print_gpt(gpt):
     print('Partition CRC: {}'.format(gpt['part_crc']))
     print('Partition list:')
     for part in gpt['parts']:
-        print('- Partition {}:'.format(part['index']))
-        print('  Type (GUID type): {} ({})'.format(GUID_TRANSLATION[part['type']], part['type']))
-        print('  GUID: {}'.format(part['guid']))
-        print('  First LBA: {}'.format(part['first_lba']))
-        print('  Last LBA: {}'.format(part['last_lba']))
-        print('  Attributes: {}'.format(part['attr']))
-        print('  Name: {}'.format(part['name']))
+        print_gpt_part(part, '  ')
