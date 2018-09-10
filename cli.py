@@ -12,7 +12,7 @@ import part.refs.object_tree as rot
 import part.refs.attribute as rattr
 from util.hexdump import hexdump
 from util.filetree import filetree, dump_filetree
-import carving
+import util.carving as carving
 
 class PyReFSShell(cmd.Cmd):
     intro = None

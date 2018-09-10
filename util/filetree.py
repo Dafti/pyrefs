@@ -1,6 +1,6 @@
-import carving
 import part.refs.attribute as rattr
 import part.refs.entry_block as reb
+import util.carving as carving
 
 def filetree(dump, v_offset, v_end_offset, nodeid, block_list = None, block_size = 16 * 1024):
     if not block_list:
