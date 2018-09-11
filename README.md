@@ -21,8 +21,9 @@ foundation of this project; William Ballantine, for the ReFS dump images on his
 website and his ReFS articles; and all the other authors providing information
 on the ReFS filesystem.
 
-We would like to also thank Juan Romero, Olivier Gilles, Isabelle and Claudia
-Duho, who performed a similar work than ours. Your feedback was unvaluable.
+We would like to also thank Juan Romero, Olivier Gilles, Isabelle Isabelle
+Moukala-Mouberi and Claudia Duhoo, who performed a similar work than ours.
+Your feedback was unvaluable.
 
 # Dependencies
 
