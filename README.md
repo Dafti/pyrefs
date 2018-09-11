@@ -76,6 +76,15 @@ We call it `Igor` and it can be launched with Python.
 
 ### `hexblock`
 
+`hexblock` is a specialized version of `hexdump`.
+It takes as input the entryblock identifier and dumps in hexadecimal format the
+correspondent entryblock completely.
+
+Format:
+```
+hexblock <entryblock_id>
+```
+
 ### `tree_control`
 
 ### `tree_control_extension`
