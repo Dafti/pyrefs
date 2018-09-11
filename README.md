@@ -34,12 +34,33 @@ No special dependencies, if you find any please let us know.
 
 # Sources organization
 
-The sources are organized as follows:
-
- - root folder:
-
-   - `igor.py`:
-   - `part`: contains the functions to parse the ReFS structures
+```.
++-- README.md
++-- LICENSE
++-- igor.py
++-- part
+|   +-- refs
+|       +-- allocator.py
+|       +-- attribute.py
+|       +-- entry_block.py
+|       +-- object.py
+|       +-- object_tree.py
+|       +-- tree_control.py
+|       +-- vol.py
++-- media
+|   +-- gpt.py
+|   +-- mbr.py
++-- util
+|   +-- carving.py
+|   +-- filetree.py
+|   +-- hexdump.py
+|   +-- table.py
+|   +-- time.py
++-- examples
+    +-- carving.rec
+    +-- filetree.rec
+    +-- tree_explorer.rec
+```
 
 # Igor
 
