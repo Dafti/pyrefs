@@ -1,5 +1,3 @@
-% pyrefs: Refs file system dumps analyzer
-
 # Introduction
 
 `pyrefs` provides a series of libraries helpful to parse and analyze Resilient
@@ -34,7 +32,8 @@ No special dependencies, if you find any please let us know.
 
 # Sources organization
 
-```.
+```
+.
 +-- README.md
 +-- LICENSE
 +-- igor.py
@@ -73,29 +72,29 @@ We call it `Igor` and it can be launched with Python.
 
 ## Command reference
 
-### `file`
+### file
 
-### `vol`
+### vol
 
-### `part`
+### part
 
-### `find_blocks`
+### find\_blocks
 
-### `find_data_blocks_with_pattern`
+### find\_data\_blocks\_with\_pattern
 
-### `find_blocks_with_filenames`
+### find\_blocks\_with\_filenames
 
-### `find_blocks_with_folders`
+### find\_blocks\_with\_folders
 
-### `list_filenames`
+### list\_filenames
 
-### `list_folders`
+### list\_folders
 
-### `entryblock`
+### entryblock
 
-### `hexdump`
+### hexdump
 
-### `hexblock`
+### hexblock
 
 `hexblock` is a specialized version of `hexdump`.
 It takes as input the entryblock identifier and dumps in hexadecimal format the
@@ -106,24 +105,24 @@ Format:
 hexblock <entryblock_id>
 ```
 
-### `tree_control`
+### tree\_control
 
-### `tree_control_extension`
+### tree\_control\_extension
 
-### `object_tree`
+### object\_tree
 
-### `allocator`
+### allocator
 
-### `attribute`
+### attribute
 
-### `datastream`
+### datastream
 
-### `list_dataruns`
+### list\_dataruns
 
-### `filetree`
+### filetree
 
-### `bye`
+### bye
 
-### `record`
+### record
 
-### `playback`
+### playback
