@@ -67,15 +67,14 @@ Please use the 'file' command to set it.''')
             self.dump_file.close()
             self.dump_file = None
             return
-        if len(parts) > 1:
-            print(('Master, {} ReFS partitions were found.\n' +
-                   'I will be using partition {}, but you can list the available' +
-                   ' partitions and switch between them with the \'part\' command.').format(
-                       len(parts), parts[0]['index']))
+        print(('Master, {} ReFS partitions were found.\n' +
+               'I will be using partition {}, but you can list the available' +
+               ' partitions and switch between them with the \'part\' command.').format(
+                   len(parts), parts[0]['index']))
+        for part in parts:
+            gpt.print_gpt_part(part)
         self.parts = parts
         self.part = parts[0]
-        print('Partition {} will be used.'.format(self.part['index']))
-        gpt.print_gpt_part(self.part)
         self.prompt = '\n{} part {} - first lba: {} last lba: {}\n> '.format(
                 self.dump_filename,
                 self.part['index'],
