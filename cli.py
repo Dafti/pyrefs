@@ -82,6 +82,14 @@ Please use the 'file' command to set it.''')
                 self.part['last_lba'])
         return
 
+    def do_vol(self, arg):
+        'Dump the volume record information from the current ReFS partition.'
+        _vol = vol.fsstat(self.dump_file,
+                          self.part['first_lba'],
+                          self.part['last_lba'])
+        vol.dump_fsstat(_vol)
+        return
+
     def do_part(self, arg):
         '''Show available partitions ('part') and select from them ('part <partition index>').'''
         if not arg:
