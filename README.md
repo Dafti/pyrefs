@@ -132,6 +132,9 @@ hexblock <entryblock identifier>
 
 ### tree\_control
 
+Parses the given entryblock identifier as TreeControl.
+If no entryblock is provided it uses 0x1e as entryblock identifier.
+
 Command format:
 ```
 tree_control <entryblock identifier>

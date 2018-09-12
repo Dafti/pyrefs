@@ -270,9 +270,10 @@ Please use the 'file' command to set it.''')
     def do_tree_control(self, arg):
         'Dump a block as tree control.'
         if not arg:
-            print('Please Master indicate the block to dump as tree control.')
-            return
-        bid = int(arg, 0)
+            print('Master you have not indicated any block, block 0x1e will be used.')
+            bin = 0x1e
+        else:
+            bid = int(arg, 0)
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
