@@ -74,9 +74,24 @@ We call it `Igor` and it can be launched with Python.
 
 ### file
 
+Command format:
+```
+file <dump filename>
+```
+
 ### vol
 
+Command format:
+```
+vol
+```
+
 ### part
+
+Command format:
+```
+part <partition index>
+```
 
 ### find\_blocks
 
@@ -92,7 +107,17 @@ We call it `Igor` and it can be launched with Python.
 
 ### entryblock
 
+Command format:
+```
+entryblock <entryblock identifier>
+```
+
 ### hexdump
+
+Command format:
+```
+hexdump <dump offset address>
+```
 
 ### hexblock
 
@@ -100,29 +125,84 @@ We call it `Igor` and it can be launched with Python.
 It takes as input the entryblock identifier and dumps in hexadecimal format the
 correspondent entryblock completely.
 
-Format:
+Command format:
 ```
-hexblock <entryblock_id>
+hexblock <entryblock identifier>
 ```
 
 ### tree\_control
 
+Command format:
+```
+tree_control <entryblock identifier>
+```
+
 ### tree\_control\_extension
+
+Command format:
+```
+tree_control_identifier <entryblock identifier>
+```
 
 ### object\_tree
 
+Command format:
+```
+object_tree <entryblock identifier>
+```
+
 ### allocator
+
+Command format:
+```
+allocator <entryblock identifier>
+```
 
 ### attribute
 
+Command format:
+```
+attribute <dump offset address>
+```
+
 ### datastream
+
+Command format:
+```
+datastream [<entryblock identifier> <number of blocks>]+
+```
 
 ### list\_dataruns
 
+Command format:
+```
+list_dataruns
+```
+
 ### filetree
+
+Command format:
+```
+filetree [<node identifier>]
+```
 
 ### bye
 
+Command format:
+```
+bye
+```
+
 ### record
 
+Command format:
+```
+record <filename>
+```
+
 ### playback
+
+Command format:
+```
+playback <filename>
+```
