@@ -74,6 +74,8 @@ We call it `Igor` and it can be launched with Python.
 
 ### file
 
+Load the dump file to use for the ReFS analysis.
+
 Command format:
 ```
 file <dump filename>

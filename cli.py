@@ -26,21 +26,33 @@ class PyReFSShell(cmd.Cmd):
     part = None
     parts = None
     blocks = None
+    _file_argparser = argparse.ArgumentParser(
+            prog='file',
+            description='Load the provided dump file for analysis')
+    _file_argparser.add_argument('dump', action='store')
 
     def preloop(self):
         print('''Hello master! Welcome home.
 I will try to help you to analyze your ReFS partition dumps.
-Type 'help' or '?' to list commands.''')
+Type 'help' or '?' to list commands.
+Type 'help <command>' for a short description of the command.
+type '<command> -h' for the usage instructions of the command.''')
         if not self.dump_filename:
             print('''Master I just realized you haven't set a dump to analyze.
 Please use the 'file' command to set it.''')
 
     def do_file(self, arg):
         '''Use the provided dump file for your deep analysis.
-        I will try to automatically select the right partition for you.'''
-        print('Loading {}'.format(arg))
-        self.dump_filename = arg
-        self.dump_file = open(self.dump_filename, 'rb')
+I will try to automatically select the right partition for you.'''
+        args = self._file_argparser.parse_args(arg.split())
+        self.dump_filename = args.dump
+        print('Master I will try to follow your wishes by loading `{}`.'.format(self.dump_filename))
+        try:
+            self.dump_file = open(self.dump_filename, 'rb')
+        except:
+            print('I tried hard Master, but I couldn\'t open the requested file.')
+            print('Are you sure it exists?')
+            return
         mbr_data = mbr.readMBR(self.dump_file)
         gpt_part = None
         for part_index, part in mbr_data:
