@@ -45,8 +45,8 @@ class PyReFSShell(cmd.Cmd):
                 prog='part',
                 description='Show available partitions in the currently loaded dump if no parameter' +
                             ' is given, switch to the provided partition if any provided')
-        _part_argparser.add_argument('-s', '--set', action='store', type=int,
-                default=None, dest='part',
+        _part_argparser.add_argument('part', action='store', type=int,
+                default=None, nargs='?',
                 help='Partition index of the partition to use for analysis')
         _feb_argparser = FuncArgumentParser(
                 prog='find_entryblocks',
@@ -157,7 +157,8 @@ I will try to automatically select the right partition for you.'''
         return
 
     def do_part(self, arg):
-        '''Show available partitions ('part') and select from them ('part <partition index>').'''
+        '''Show available partitions information ('part') and select from them
+('part <partition index>').'''
         cargs = self._check_func_args('part', arg)
         if cargs['return']:
             return
