@@ -41,8 +41,16 @@ class PyReFSShell(cmd.Cmd):
         _vol_argparser = FuncArgumentParser(
                 prog='vol',
                 description='Dump the volume record information from the current ReFS partition')
+        _part_argparser = FuncArgumentParser(
+                prog='part',
+                description='Show available partitions in the currently loaded dump if no parameter' +
+                            ' is given, switch to the provided partition if any provided')
+        _part_argparser.add_argument('-s', '--set', action='store', type=int,
+                default=None, dest='part',
+                help='Partition index of the partition to use for analysis')
         self._args = {'file': _file_argparser,
-                      'vol': _vol_argparser
+                      'vol': _vol_argparser,
+                      'part': _part_argparser
                      }
 
     def _check_func_args(self, func, arg):
@@ -138,19 +146,23 @@ I will try to automatically select the right partition for you.'''
 
     def do_part(self, arg):
         '''Show available partitions ('part') and select from them ('part <partition index>').'''
-        if not arg:
+        cargs = self._check_func_args('part', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        if args.part is None:
             print('Master you have {} partition{} available, here they are.'.format(
                 len(self.parts), 's' if len(self.parts) > 1 else ''))
             for p in self.parts:
                 gpt.print_gpt_part(self.part)
             return
-        if int(arg) not in [ p['index'] for p in self.parts ]:
+        if args.part not in [ p['index'] for p in self.parts ]:
             print('Master I don\'t have the partition index {} you provided.'.format(
-                arg))
+                args.part))
             return
-        if int(arg) == self.part['index']:
+        if args.part == self.part['index']:
             print('Nothing done, as we are already using partition {}.'.format(
-                arg))
+                args.part))
             return
         self.part = self.parts[int(arg)]
         print('Switched to partition {}, enjoy Master.'.format(arg))
