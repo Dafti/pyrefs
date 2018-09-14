@@ -128,7 +128,21 @@ Optional arguments:
  - `-F`, `--folders`: Collect information on the number of folders in the
    entryblocks.
 
-### find\_data\_blocks\_with\_pattern
+### find\_pattern
+
+Usage: `find_pattern [-h] pattern`
+
+Find a data pattern in all the blocks of the current partition. Special
+characters (including spaces, carriage return, etc.) are not allowed in the
+pattern, think of escaping them.
+
+Positional arguments:
+
+ - `pattern`: Pattern to find in the current partition blocks.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### list\_filenames
 
