@@ -48,9 +48,21 @@ class PyReFSShell(cmd.Cmd):
         _part_argparser.add_argument('-s', '--set', action='store', type=int,
                 default=None, dest='part',
                 help='Partition index of the partition to use for analysis')
+        _feb_argparser = FuncArgumentParser(
+                prog='find_entryblocks',
+                description='Find and show all the entryblocks in current partition.' +
+                            ' If requested number of files and folders information will be also' +
+                            ' collected.')
+        _feb_argparser.add_argument('-f', '--files', action='store_true',
+                default=False, dest='files',
+                help='Collect information on the number of files in the entryblocks.')
+        _feb_argparser.add_argument('-F', '--folders', action='store_true',
+                default=False, dest='folders',
+                help='Collect information on the number of folders in the entryblocks.')
         self._args = {'file': _file_argparser,
                       'vol': _vol_argparser,
-                      'part': _part_argparser
+                      'part': _part_argparser,
+                      'find_entryblocks': _feb_argparser
                      }
 
     def _check_func_args(self, func, arg):
@@ -173,15 +185,20 @@ I will try to automatically select the right partition for you.'''
                 self.part['last_lba'])
         gpt.print_gpt_part(self.part)
 
-    def do_find_blocks(self, arg):
-        'Extract all the entry blocks.'
+    def do_find_entryblocks(self, arg):
+        '''Extract and show all the entryblocks used in the current partition.
+If requested also extract an estimation of the number of filenames and folders
+found per entryblock.'''
+        cargs = self._check_func_args('find_entryblocks', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        if not self.dump_file:
+            print('Master you have not defined a dump to analyze.')
+            print('Please provide a dump file.')
+            return
         offset = self.part['first_lba']
         end_offset = self.part['last_lba']
-        if arg:
-            if len(arg.split()) != 2:
-                print('Master, two offsets are expected start and end.')
-                return
-            offset, end_offset = tuple(map(lambda x: int(x), arg.split()))
         if self.blocks == None:
             print(('Looking for blocks between lba {} and lba {}.' +
                    ' This may take a while Master. A coffee?').format(
@@ -189,6 +206,12 @@ I will try to automatically select the right partition for you.'''
                        end_offset))
             self.blocks = carving.find_blocks(self.dump_file, offset, end_offset)
         print('Master I found {} blocks.'.format(len(self.blocks)))
+        if args.files:
+            blocks = carving.blocks_with_filename_attributes(self.dump_file, self.blocks)
+            print('Master I found {} blocks with the filename attribute.'.format(len(blocks)))
+        if args.folders:
+            blocks = carving.blocks_with_folder_attributes(self.dump_file, self.blocks)
+            print('Master I found {} blocks with the filename folder attribute.'.format(len(blocks)))
         carving.print_blocks(self.blocks)
 
     def do_find_data_blocks_with_pattern(self, arg):
@@ -210,26 +233,6 @@ I will try to automatically select the right partition for you.'''
                 print('{:<#16x} {:<#16x} {:<#16x}'.format(block['addr'],
                                                           block['lba_offset'],
                                                           block['block_offset']))
-
-    def do_find_blocks_with_filenames(self, arg):
-        'Find which blocks have a file attribute.'
-        if not self.blocks:
-            print('Master, first you need to look for the blocks.')
-            print('Please Master, use \'find_blocks\' first.')
-            return
-        blocks = carving.blocks_with_filename_attributes(self.dump_file, self.blocks) 
-        print('Master I found {} blocks with the filename attribute.'.format(len(blocks)))
-        carving.print_blocks(blocks)
-
-    def do_find_blocks_with_folders(self, arg):
-        'Find which blocks have a folder attribute.'
-        if not self.blocks:
-            print('Master, first you need to look for the blocks.')
-            print('Please Master, use \'find_blocks\' first.')
-            return
-        blocks = carving.blocks_with_folder_attributes(self.dump_file, self.blocks) 
-        print('Master I found {} blocks with the folder attribute.'.format(len(blocks)))
-        carving.print_blocks(blocks)
 
     def do_list_filenames(self, arg):
         'List the found filenames from the list of blocks with filenames.'

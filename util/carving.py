@@ -91,6 +91,8 @@ def blocks_with_filename_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
         if fileids:
             block['fnas'] = [ x + block['offset'] - 0x10 for x in fileids ]
             blocks_found.append(block)
+        else:
+            block['fnas'] = []
     return blocks_found
 
 def blocks_with_folder_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
@@ -113,6 +115,8 @@ def blocks_with_folder_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
         if folderids:
             block['folderids'] = [ x + block['offset'] - 0x10 for x in folderids ]
             blocks_found.append(block)
+        else:
+            block['folderids'] = []
     return blocks_found
 
 def blocks_with_child_attributes(dump, blocks, block_size = ENTRYBLOCK_SIZE):
