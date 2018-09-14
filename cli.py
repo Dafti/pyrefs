@@ -45,7 +45,7 @@ class PyReFSShell(cmd.Cmd):
                 prog='part',
                 description='Show available partitions in the currently loaded dump if no parameter' +
                             ' is given, switch to the provided partition if any provided')
-        _part_argparser.add_argument('part', action='store', type=int,
+        _part_argparser.add_argument('partidx', action='store', type=int,
                 default=None, nargs='?',
                 help='Partition index of the partition to use for analysis')
         _feb_argparser = FuncArgumentParser(
@@ -163,21 +163,21 @@ I will try to automatically select the right partition for you.'''
         if cargs['return']:
             return
         args = cargs['args']
-        if args.part is None:
+        if args.partidx is None:
             print('Master you have {} partition{} available, here they are.'.format(
                 len(self.parts), 's' if len(self.parts) > 1 else ''))
             for p in self.parts:
                 gpt.print_gpt_part(self.part)
             return
-        if args.part not in [ p['index'] for p in self.parts ]:
+        if args.partidx not in [ p['index'] for p in self.parts ]:
             print('Master I don\'t have the partition index {} you provided.'.format(
-                args.part))
+                args.partidx))
             return
-        if args.part == self.part['index']:
+        if args.partidx == self.part['index']:
             print('Nothing done, as we are already using partition {}.'.format(
-                args.part))
+                args.partidx))
             return
-        self.part = self.parts[int(arg)]
+        self.part = self.parts[args.partidx]
         print('Switched to partition {}, enjoy Master.'.format(arg))
         self.prompt = '\n{} part {} - first lba: {} last lba: {}\n> '.format(
                 self.dump_filename,
