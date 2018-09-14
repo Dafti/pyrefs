@@ -1,6 +1,7 @@
 import argparse
 import cmd
 import sys
+import ast
 
 import media.mbr as mbr
 import media.gpt as gpt
@@ -14,6 +15,7 @@ from util.hexdump import hexdump
 from util.filetree import filetree, dump_filetree
 import util.carving as carving
 from util.func_parser import FuncArgumentParser, FuncArgumentParserError, FuncArgumentParserHelp
+from util.table import print_table
 
 class PyReFSShell(cmd.Cmd):
     intro = None
@@ -59,10 +61,19 @@ class PyReFSShell(cmd.Cmd):
         _feb_argparser.add_argument('-F', '--folders', action='store_true',
                 default=False, dest='folders',
                 help='Collect information on the number of folders in the entryblocks.')
+        _fp_argparser = FuncArgumentParser(
+                prog='find_pattern',
+                description='Find a data pattern in all the blocks of the current partition.' +
+                            ' Special characters (including spaces, carriage return, etc.)' +
+                            ' are not allowed in the pattern, think of escaping them.')
+        _fp_argparser.add_argument('pattern', action='store',
+                type=str,
+                help='Pattern to find in the current partition blocks.')
         self._args = {'file': _file_argparser,
                       'vol': _vol_argparser,
                       'part': _part_argparser,
-                      'find_entryblocks': _feb_argparser
+                      'find_entryblocks': _feb_argparser,
+                      _fp_argparser.prog: _fp_argparser
                      }
 
     def _check_func_args(self, func, arg):
@@ -215,25 +226,29 @@ found per entryblock.'''
             print('Master I found {} blocks with the filename folder attribute.'.format(len(blocks)))
         carving.print_blocks(self.blocks)
 
-    def do_find_data_blocks_with_pattern(self, arg):
-        'Find a data pattern in all the blocks of the dump.'
+    def do_find_pattern(self, arg):
+        '''Find a data pattern in all the blocks of the current partition.
+Special characters (including spaces, carriage return, etc.) are not allowed in
+the pattern, think of escaping them.'''
+        cargs = self._check_func_args('find_pattern', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        _pattern = ast.literal_eval('"{}"'.format(args.pattern))
         offset = self.part['first_lba']
         end_offset = self.part['last_lba']
-        if not arg:
-            print('Master I need a pattern, and only one.')
-            return
-        pattern = [ ord(x) for x in arg ]
+        pattern = [ ord(x) for x in _pattern ]
         print('Master I will be analyzing your pattern \'{}\' ({}) but it may take a while.'.format(
-            arg, pattern))
+            args.pattern, [ '{:#x}'.format(x) for x in pattern ]))
         print('Do you want a cup of tea?')
         blocks = carving.find_data_blocks_with_pattern(self.dump_file, pattern, offset, end_offset)
         print('Master I found {} blocks with your wiseful pattern.'.format(len(blocks)))
+        # print table of found blocks
+        columns = [ {'key': 'addr', 'header': 'Address', 'align': '<', 'format': '#x'},
+                    {'key': 'lba_offset', 'header': 'LBA offset', 'align': '<', 'format': '#x'},
+                    {'key': 'block_offset', 'header': 'Block offset', 'align': '<', 'format': '#x'} ]
         if blocks:
-            print('{:<16} {:<16} {:<16}'.format('Address', 'LBA offset', 'Block offset'))
-            for block in blocks:
-                print('{:<#16x} {:<#16x} {:<#16x}'.format(block['addr'],
-                                                          block['lba_offset'],
-                                                          block['block_offset']))
+            print_table(columns, blocks)
 
     def do_list_filenames(self, arg):
         'List the found filenames from the list of blocks with filenames.'
