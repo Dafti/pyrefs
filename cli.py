@@ -35,16 +35,16 @@ class PyReFSShell(cmd.Cmd):
     def _init_func_args(self):
         _file_argparser = FuncArgumentParser(
                 prog='file',
-                description='Load the provided dump file for analysis')
+                description='Load the provided dump file for analysis.')
         _file_argparser.add_argument('dump', action='store',
                 help='File to use as dump for the analysis')
         _vol_argparser = FuncArgumentParser(
                 prog='vol',
-                description='Dump the volume record information from the current ReFS partition')
+                description='Dump the volume record information from the current ReFS partition.')
         _part_argparser = FuncArgumentParser(
                 prog='part',
                 description='Show available partitions in the currently loaded dump if no parameter' +
-                            ' is given, switch to the provided partition if any provided')
+                            ' is given, switch to the provided partition if any provided.')
         _part_argparser.add_argument('partidx', action='store', type=int,
                 default=None, nargs='?',
                 help='Partition index of the partition to use for analysis')
