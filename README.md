@@ -74,34 +74,61 @@ We call it `Igor` and it can be launched with Python.
 
 ### file
 
-Load the dump file to use for the ReFS analysis.
+Usage: `file [-h] dump`
 
-Command format:
-```
-file <dump filename>
-```
+Load the provided dump file for analysis.
+
+Positional arguments:
+
+ - `dump`: File to use as dump for the analysis.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### vol
 
-Command format:
-```
-vol
-```
+Usage: `vol [-h]`
+
+Dump the volume record information from the current ReFS partition.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+
+Dump the volume record information from the current ReFS partition.
 
 ### part
 
-Command format:
-```
-part <partition index>
-```
+Usage: `part [-h] [partidx]`
 
-### find\_blocks
+Show available partitions in the currently loaded dump if no parameter is
+given, switch to the provided partition if any provided.
+
+Positional arguments:
+
+ - `partidx`: Partition index of the partition to use for analysis
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+
+### find\_entryblocks
+
+Usage: `find_entryblocks [-h] [-f] [-F]`
+
+Find and show all the entryblocks in current partition. If requested number of
+files and folders information will be also collected.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+ - `-f`, `--files`: Collect information on the number of files in the
+   entryblocks.
+ - `-F`, `--folders`: Collect information on the number of folders in the
+   entryblocks.
 
 ### find\_data\_blocks\_with\_pattern
-
-### find\_blocks\_with\_filenames
-
-### find\_blocks\_with\_folders
 
 ### list\_filenames
 
