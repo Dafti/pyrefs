@@ -13,6 +13,7 @@ import part.refs.attribute as rattr
 from util.hexdump import hexdump
 from util.filetree import filetree, dump_filetree
 import util.carving as carving
+from util.func_parser import FuncArgumentParser, FuncArgumentParserError, FuncArgumentParserHelp
 
 class PyReFSShell(cmd.Cmd):
     intro = None
@@ -26,7 +27,7 @@ class PyReFSShell(cmd.Cmd):
     part = None
     parts = None
     blocks = None
-    _file_argparser = argparse.ArgumentParser(
+    _file_argparser = FuncArgumentParser(
             prog='file',
             description='Load the provided dump file for analysis')
     _file_argparser.add_argument('dump', action='store')
@@ -44,7 +45,13 @@ Please use the 'file' command to set it.''')
     def do_file(self, arg):
         '''Use the provided dump file for your deep analysis.
 I will try to automatically select the right partition for you.'''
-        args = self._file_argparser.parse_args(arg.split())
+        try:
+            args = self._file_argparser.parse_args(arg.split())
+        except FuncArgumentParserHelp:
+            return
+        except FuncArgumentParserError:
+            print('Master your command is badly formatted.')
+            return
         self.dump_filename = args.dump
         print('Master I will try to follow your wishes by loading `{}`.'.format(self.dump_filename))
         try:
