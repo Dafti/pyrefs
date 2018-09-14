@@ -27,13 +27,36 @@ class PyReFSShell(cmd.Cmd):
     part = None
     parts = None
     blocks = None
-    _file_argparser = FuncArgumentParser(
-            prog='file',
-            description='Load the provided dump file for analysis')
-    _file_argparser.add_argument('dump', action='store')
-    _vol_argparser = FuncArgumentParser(
-            prog='vol',
-            description='Dump the volume record information from the current ReFS partition')
+
+    def __init__(self, **args):
+        cmd.Cmd.__init__(self, args)
+        self._init_func_args()
+
+    def _init_func_args(self):
+        _file_argparser = FuncArgumentParser(
+                prog='file',
+                description='Load the provided dump file for analysis')
+        _file_argparser.add_argument('dump', action='store',
+                help='File to use as dump for the analysis')
+        _vol_argparser = FuncArgumentParser(
+                prog='vol',
+                description='Dump the volume record information from the current ReFS partition')
+        self._args = {'file': _file_argparser,
+                      'vol': _vol_argparser
+                     }
+
+    def _check_func_args(self, func, arg):
+        parser = self._args[func]
+        out = {'return': True, 'args': None}
+        try:
+            args = parser.parse_args(arg.split())
+        except FuncArgumentParserHelp:
+            return out
+        except FuncArgumentParserError:
+            print('Master your command is badly formatted.')
+            return out
+        out = {'return': False, 'args': args}
+        return out
 
     def preloop(self):
         print('''Hello master! Welcome home.
@@ -48,13 +71,10 @@ Please use the 'file' command to set it.''')
     def do_file(self, arg):
         '''Use the provided dump file for your deep analysis.
 I will try to automatically select the right partition for you.'''
-        try:
-            args = self._file_argparser.parse_args(arg.split())
-        except FuncArgumentParserHelp:
+        cargs = self._check_func_args('file', arg)
+        if cargs['return']:
             return
-        except FuncArgumentParserError:
-            print('Master your command is badly formatted.')
-            return
+        args = cargs['args']
         self.dump_filename = args.dump
         print('Master I will try to follow your wishes by loading `{}`.'.format(self.dump_filename))
         try:
@@ -106,13 +126,10 @@ I will try to automatically select the right partition for you.'''
 
     def do_vol(self, arg):
         'Dump the volume record information from the current ReFS partition.'
-        try:
-            args = self._vol_argparser.parse_args(arg.split())
-        except FuncArgumentParserHelp:
+        cargs = self._check_func_args('vol', arg)
+        if cargs['return']:
             return
-        except FuncArgumentParserError:
-            print('Master your command is badly formatted.')
-            return
+        args = cargs['args']
         _vol = vol.fsstat(self.dump_file,
                           self.part['first_lba'],
                           self.part['last_lba'])
