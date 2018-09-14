@@ -499,6 +499,11 @@ Bye!!!!''')
         self.close()
         return True
 
+    def do_EOF(self, arg):
+        'Really are you sure?'
+        print('\nI would have liked a \'bye\' Master, but I follow your orders.')
+        return self.do_bye(arg)
+
     # ----- record and playback -----
     def do_record(self, arg):
         'Save future commands to filename:  RECORD rose.cmd'
