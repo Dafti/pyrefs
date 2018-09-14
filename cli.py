@@ -31,6 +31,9 @@ class PyReFSShell(cmd.Cmd):
             prog='file',
             description='Load the provided dump file for analysis')
     _file_argparser.add_argument('dump', action='store')
+    _vol_argparser = FuncArgumentParser(
+            prog='vol',
+            description='Dump the volume record information from the current ReFS partition')
 
     def preloop(self):
         print('''Hello master! Welcome home.
@@ -103,6 +106,13 @@ I will try to automatically select the right partition for you.'''
 
     def do_vol(self, arg):
         'Dump the volume record information from the current ReFS partition.'
+        try:
+            args = self._vol_argparser.parse_args(arg.split())
+        except FuncArgumentParserHelp:
+            return
+        except FuncArgumentParserError:
+            print('Master your command is badly formatted.')
+            return
         _vol = vol.fsstat(self.dump_file,
                           self.part['first_lba'],
                           self.part['last_lba'])
