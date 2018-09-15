@@ -74,9 +74,11 @@ We call it `Igor` and it can be launched with Python.
 
 ### file
 
-Usage: `file [-h] dump`
+Usage: `file [-h] [-i] [-f] [-F] dump`
 
-Load the provided dump file for analysis.
+Load the provided dump file for analysis, and automatically select the ReFS
+partition for you.
+You can also initialize the list of entryblocks of the partition.
 
 Positional arguments:
 
@@ -85,6 +87,10 @@ Positional arguments:
 Optional arguments:
 
  - `-h`, `--help`: show this help message and exit
+ - `-i`, `--initiliaze-entryblocks`: find blocks in provided dump
+ - `-f`, `--files`: find files in provided dump (only considered if -i defined)
+ - `-F`, `--folders`: find folders in provided dump (only considered if -i
+   defined)
 
 ### vol
 

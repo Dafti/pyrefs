@@ -37,9 +37,21 @@ class PyReFSShell(cmd.Cmd):
     def _init_func_args(self):
         _file_argparser = FuncArgumentParser(
                 prog='file',
-                description='Load the provided dump file for analysis.')
+                description='Load the provided dump file for analysis, and ' +
+                            'automatically select the ReFS partition for ' +
+                            'you. You can also initialize the list of ' +
+                            'entryblocks of the partition.')
         _file_argparser.add_argument('dump', action='store',
-                help='File to use as dump for the analysis')
+                help='file to use as dump for the analysis')
+        _file_argparser.add_argument('-i', '--initiliaze-entryblocks', action='store_true',
+                default=False, dest='initialize_entryblocks',
+                help='find blocks in provided dump')
+        _file_argparser.add_argument('-f', '--files', action='store_true',
+                default=False,
+                help='find files in provided dump (only considered if -i defined)')
+        _file_argparser.add_argument('-F', '--folders', action='store_true',
+                default=False,
+                help='find folders in provided dump (only considered if -i defined)')
         _vol_argparser = FuncArgumentParser(
                 prog='vol',
                 description='Dump the volume record information from the current ReFS partition.')
@@ -100,8 +112,9 @@ type '<command> -h' for the usage instructions of the command.''')
 Please use the 'file' command to set it.''')
 
     def do_file(self, arg):
-        '''Use the provided dump file for your deep analysis.
-I will try to automatically select the right partition for you.'''
+        '''Use the provided dump file for your ReFS analysis.
+I will try to automatically select the right partition for you.
+You can also initialize the list of entryblocks of the partition.'''
         cargs = self._check_func_args('file', arg)
         if cargs['return']:
             return
@@ -153,6 +166,13 @@ I will try to automatically select the right partition for you.'''
                 self.part['index'],
                 self.part['first_lba'],
                 self.part['last_lba'])
+        if args.initialize_entryblocks:
+            f_args = ''
+            if args.files:
+                f_args = '-f'
+            if args.folders:
+                f_args = f_args + ' -F' if f_args != '' else '-F'
+            self.do_find_entryblocks(f_args)
         return
 
     def do_vol(self, arg):
