@@ -81,11 +81,21 @@ class PyReFSShell(cmd.Cmd):
         _fp_argparser.add_argument('pattern', action='store',
                 type=str,
                 help='Pattern to find in the current partition blocks.')
+        _lfiles_argparser = FuncArgumentParser(
+                prog='list_filenames',
+                description='List the found filenames from the list of ' +
+                            'entryblocks with filenames.')
+        _lfolders_argparser = FuncArgumentParser(
+                prog='list_folders',
+                description='List the found filename folders from the list ' +
+                            'of entryblocks with folders.')
         self._args = {'file': _file_argparser,
                       'vol': _vol_argparser,
                       'part': _part_argparser,
                       'find_entryblocks': _feb_argparser,
-                      _fp_argparser.prog: _fp_argparser
+                      _fp_argparser.prog: _fp_argparser,
+                      _lfiles_argparser.prog: _lfiles_argparser,
+                      _lfolders_argparser.prog: _lfolders_argparser
                      }
 
     def _check_func_args(self, func, arg):
@@ -271,7 +281,11 @@ the pattern, think of escaping them.'''
             print_table(columns, blocks)
 
     def do_list_filenames(self, arg):
-        'List the found filenames from the list of blocks with filenames.'
+        'List the found filenames from the list of entryblocks with filenames.'
+        cargs = self._check_func_args('list_filenames', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
         if not self.blocks:
             print('Master, first you need to look for the blocks and blocks with filenames.')
             print('Please Master, use \'find_blocks\' and \'find_blocks_with_filenames\' first.')
@@ -294,7 +308,11 @@ the pattern, think of escaping them.'''
             print('Master are you sure you performed \'find_blocks_with_folders\' before?')
 
     def do_list_folders(self, arg):
-        'List the found folders from the list of blocks with folders.'
+        'List the found filename folders from the list of entryblocks with folders.'
+        cargs = self._check_func_args('list_folders', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
         if not self.blocks:
             print('Master, first you need to look for the blocks and blocks with folders.')
             print('Please Master, use \'find_blocks\' and \'find_blocks_with_folders\' first.')

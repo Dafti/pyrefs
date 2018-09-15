@@ -152,7 +152,23 @@ Optional arguments:
 
 ### list\_filenames
 
+Usage: `list_filenames [-h]`
+
+List the found filenames from the list of entryblocks with filenames.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+
 ### list\_folders
+
+Usage: list_folders [-h]
+
+List the found filename folders from the list of entryblocks with folders.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### entryblock
 
