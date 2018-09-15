@@ -162,7 +162,7 @@ Optional arguments:
 
 ### list\_folders
 
-Usage: list_folders [-h]
+Usage: `list_folders [-h]`
 
 List the found filename folders from the list of entryblocks with folders.
 
@@ -172,105 +172,203 @@ Optional arguments:
 
 ### entryblock
 
-Command format:
-```
-entryblock <entryblock identifier>
-```
+Usage: `entryblock [-h] entryblock_identifier`
 
-### hexdump
+Dump the provided entryblock identifier as EntryBlock.
 
-Command format:
-```
-hexdump <dump offset address>
-```
+Positional arguments:
 
-### hexblock
+ - `entryblock_identifier`: entryblock identifier of the EntryBlock to dump
 
-`hexblock` is a specialized version of `hexdump`.
-It takes as input the entryblock identifier and dumps in hexadecimal format the
-correspondent entryblock completely.
+Optional arguments:
 
-Command format:
-```
-hexblock <entryblock identifier>
-```
+ - `-h`, `--help`: show this help message and exit
 
 ### tree\_control
 
-Parses the given entryblock identifier as TreeControl.
-If no entryblock is provided it uses 0x1e as entryblock identifier.
+Usage: `tree_control [-h] [entryblock_identifier]`
 
-Command format:
-```
-tree_control <entryblock identifier>
-```
+Parse the given entryblock identifier as a TreeControl.
+If no entryblock identifier is provided it uses 0x1e as entryblock identifier.
+
+Positional arguments:
+
+ - `entryblock_identifier`: entryblock identifier of the TreeControl to dump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### tree\_control\_extension
 
-Command format:
-```
-tree_control_identifier <entryblock identifier>
-```
+Usage: `tree_control_extension [-h] entryblock_identifier`
+
+Parse the given entryblock identifier as a TreeControlExtension.
+
+Positional arguments:
+
+ - `entryblock_identifier`: entryblock identifier of the TreeControlExtension
+   to dump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### object\_tree
 
-Command format:
-```
-object_tree <entryblock identifier>
-```
+Usage: `object_tree [-h] entryblock_identifier`
+
+Parse the given entryblock identifier as an ObjectTree.
+
+Positional arguments:
+
+ - `entryblock_identifier`: entryblock identifier of the ObjectTree to dump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### allocator
 
-Command format:
-```
-allocator <entryblock identifier>
-```
+Usage: `allocator [-h] entryblock_identifier`
+
+Parse the given entryblock identifier as an Allocator.
+
+Positional arguments:
+
+ - `entryblock_identifier`: entryblock identifier of the Allocator to dump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### attribute
 
-Command format:
-```
-attribute <dump offset address>
-```
+Usage: `attribute [-h] dump_offset`
+
+Parse the given dump offset (in bytes) as an Attribute.
+
+Positional arguments:
+
+ - `dump_offset`: dump offset (in bytes) of the Attribute to dump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### datastream
 
-Command format:
+Usage:
 ```
-datastream [<entryblock identifier> <number of blocks>]+
+datastream [-h] output_filename output_size
+           entryblock_identifier,number_of_blocks
+           [entryblock_identifier,number_of_blocks ...]
 ```
+
+Extract data from dump from the given datarun.
+Dataruns can be extracted by exploring the EntryBlocks (command `entryblock`)
+or using the `list_dataruns` command.
+
+Positional arguments:
+
+ - `output_filename`: name of the generated output file
+ - `output_size`: total amount of data to extract
+ - `entryblock_identifier,number_of_blocks`: datarun to follow for the data extraction
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### list\_dataruns
 
-Command format:
-```
-list_dataruns
-```
+Usage: `list_dataruns [-h]`
+
+Retrieve list of all the files dataruns.
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### filetree
 
-Command format:
-```
-filetree [<node identifier>]
-```
+Usage: `filetree [-h] node_id`
 
-### bye
+Extract the file tree structure from the given node (use node 0x600 by
+default).
 
-Command format:
-```
-bye
-```
+Positional arguments:
+
+ - `node_id`: node identifier of the node to extract the file tree structure
+   from
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+
+### hexdump
+
+Usage: `hexdump [-h] dump_offset size`
+
+Hexdump the number of bytes at the provided offset.
+
+Positional arguments:
+
+ - `dump_offset`: dump offset of the hexdump start
+ - `size`: number of bytes to dump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+
+### hexblock
+
+Usage: `hexblock [-h] entryblock_id`
+
+Hexdump the block with the provided entryblock identifier.
+
+Positional arguments:
+
+ - `entryblock_id`: entryblock identifier to hexdump
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
+
+### bye or \<ctrl-d\>
+
+Usage: `bye [-h]`
+
+Exit the program. Are you sure?
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### record
 
-Command format:
-```
-record <filename>
-```
+Usage: `record [-h] output_file`
+
+Save the following commands to selected file.
+Saved file can be used afterwards for replay with the `playback` command.
+
+Positional arguments:
+
+ - `output_file`: file onto which commands will be saved
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit
 
 ### playback
 
-Command format:
-```
-playback <filename>
-```
+Usage: `playback [-h] input_file`
+
+Execute the sequence of commands defined in the input file.
+
+Positional arguments:
+
+ - `input_file`: file from which commands to execute will be read
+
+Optional arguments:
+
+ - `-h`, `--help`: show this help message and exit

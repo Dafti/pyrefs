@@ -17,6 +17,13 @@ import util.carving as carving
 from util.func_parser import FuncArgumentParser, FuncArgumentParserError, FuncArgumentParserHelp
 from util.table import print_table
 
+def _datarun_arg(s):
+    try:
+        ebid, n = map(lambda x: int(x, 0), s.split(','))
+        return (ebid, n)
+    except:
+        raise argparse.ArgumentTypeError('Datarun entry must be <entryblock_identifier>,<number>.')
+
 class PyReFSShell(cmd.Cmd):
     intro = None
     #     intro = '''Hello master! Welcome home.
@@ -35,67 +42,186 @@ class PyReFSShell(cmd.Cmd):
         self._init_func_args()
 
     def _init_func_args(self):
-        _file_argparser = FuncArgumentParser(
+        file_argparser = FuncArgumentParser(
                 prog='file',
                 description='Load the provided dump file for analysis, and ' +
                             'automatically select the ReFS partition for ' +
                             'you. You can also initialize the list of ' +
                             'entryblocks of the partition.')
-        _file_argparser.add_argument('dump', action='store',
+        file_argparser.add_argument('dump', action='store',
                 help='file to use as dump for the analysis')
-        _file_argparser.add_argument('-i', '--initiliaze-entryblocks', action='store_true',
+        file_argparser.add_argument('-i', '--initiliaze-entryblocks', action='store_true',
                 default=False, dest='initialize_entryblocks',
                 help='find blocks in provided dump')
-        _file_argparser.add_argument('-f', '--files', action='store_true',
+        file_argparser.add_argument('-f', '--files', action='store_true',
                 default=False,
                 help='find files in provided dump (only considered if -i defined)')
-        _file_argparser.add_argument('-F', '--folders', action='store_true',
+        file_argparser.add_argument('-F', '--folders', action='store_true',
                 default=False,
                 help='find folders in provided dump (only considered if -i defined)')
-        _vol_argparser = FuncArgumentParser(
+        vol_argparser = FuncArgumentParser(
                 prog='vol',
                 description='Dump the volume record information from the current ReFS partition.')
-        _part_argparser = FuncArgumentParser(
+        part_argparser = FuncArgumentParser(
                 prog='part',
                 description='Show available partitions in the currently loaded dump if no parameter' +
                             ' is given, switch to the provided partition if any provided.')
-        _part_argparser.add_argument('partidx', action='store', type=int,
+        part_argparser.add_argument('partidx', action='store', type=int,
                 default=None, nargs='?',
                 help='Partition index of the partition to use for analysis')
-        _feb_argparser = FuncArgumentParser(
+        feb_argparser = FuncArgumentParser(
                 prog='find_entryblocks',
                 description='Find and show all the entryblocks in current partition.' +
                             ' If requested number of files and folders information will be also' +
                             ' collected.')
-        _feb_argparser.add_argument('-f', '--files', action='store_true',
+        feb_argparser.add_argument('-f', '--files', action='store_true',
                 default=False, dest='files',
                 help='Collect information on the number of files in the entryblocks.')
-        _feb_argparser.add_argument('-F', '--folders', action='store_true',
+        feb_argparser.add_argument('-F', '--folders', action='store_true',
                 default=False, dest='folders',
                 help='Collect information on the number of folders in the entryblocks.')
-        _fp_argparser = FuncArgumentParser(
+        fp_argparser = FuncArgumentParser(
                 prog='find_pattern',
                 description='Find a data pattern in all the blocks of the current partition.' +
                             ' Special characters (including spaces, carriage return, etc.)' +
                             ' are not allowed in the pattern, think of escaping them.')
-        _fp_argparser.add_argument('pattern', action='store',
+        fp_argparser.add_argument('pattern', action='store',
                 type=str,
                 help='Pattern to find in the current partition blocks.')
-        _lfiles_argparser = FuncArgumentParser(
+        lfiles_argparser = FuncArgumentParser(
                 prog='list_filenames',
                 description='List the found filenames from the list of ' +
                             'entryblocks with filenames.')
-        _lfolders_argparser = FuncArgumentParser(
+        lfolders_argparser = FuncArgumentParser(
                 prog='list_folders',
                 description='List the found filename folders from the list ' +
                             'of entryblocks with folders.')
-        self._args = {'file': _file_argparser,
-                      'vol': _vol_argparser,
-                      'part': _part_argparser,
-                      'find_entryblocks': _feb_argparser,
-                      _fp_argparser.prog: _fp_argparser,
-                      _lfiles_argparser.prog: _lfiles_argparser,
-                      _lfolders_argparser.prog: _lfolders_argparser
+        eb_argparser = FuncArgumentParser(
+                prog='entryblock',
+                description='Dump the provided entryblock identifier as ' +
+                'EntryBlock.')
+        eb_argparser.add_argument('entryblock_identifier', action='store',
+                type=lambda x: int(x, 0),
+                help='entryblock identifier of the EntryBlock to dump')
+        tc_argparser = FuncArgumentParser(
+                prog='tree_control',
+                description='Parse the given entryblock identifier as a ' +
+                            'TreeControl. If no entryblock identifier is ' +
+                            'provided it uses 0x1e as entryblock identifier.')
+        tc_argparser.add_argument('entryblock_identifier', action='store',
+                type=lambda x: int(x, 0), nargs='?', default=0x1e,
+                help='entryblock identifier of the TreeControl to dump')
+        tce_argparser = FuncArgumentParser(
+                prog='tree_control_extension',
+                description='Parse the given entryblock identifier as a ' +
+                            'TreeControlExtension.')
+        tce_argparser.add_argument('entryblock_identifier', action='store',
+                type=lambda x: int(x, 0),
+                help='entryblock identifier of the TreeControlExtension to ' +
+                     'dump')
+        ot_argparser = FuncArgumentParser(
+                prog='object_tree',
+                description='Parse the given entryblock identifier as an ' +
+                            'ObjectTree.')
+        ot_argparser.add_argument('entryblock_identifier', action='store',
+                type=lambda x: int(x, 0),
+                help='entryblock identifier of the ObjectTree to ' +
+                     'dump')
+        alloc_argparser = FuncArgumentParser(
+                prog='allocator',
+                description='Parse the given entryblock identifier as an ' +
+                            'Allocator.')
+        alloc_argparser.add_argument('entryblock_identifier', action='store',
+                type=lambda x: int(x, 0),
+                help='entryblock identifier of the Allocator to dump')
+        attr_argparser = FuncArgumentParser(
+                prog='attribute',
+                description='Parse the given dump offset (in bytes) as an ' +
+                            'Attribute.')
+        attr_argparser.add_argument('dump_offset', action='store',
+                type=lambda x: int(x, 0),
+                help='dump offset (in bytes) of the Attribute to dump')
+        ds_argparser = FuncArgumentParser(
+                prog='datastream',
+                description='Extract data from dump from the given datarun. ' +
+                            'Dataruns can be extracted by exploring the ' +
+                            'EntryBlocks (command `entryblock`) or using ' +
+                            'the `list_dataruns` command.'
+                            )
+        ds_argparser.add_argument('output_filename', action='store',
+                help='name of the generated output file')
+        ds_argparser.add_argument('output_size', action='store',
+                type=lambda x: int(x, 0),
+                help='total amount of data to extract')
+        ds_argparser.add_argument('dataruns', action='store',
+                type=_datarun_arg, nargs='+',
+                metavar='entryblock_identifier,number_of_blocks',
+                help='datarun to follow for the data extraction')
+        ldr_argparser = FuncArgumentParser(
+                prog='list_dataruns',
+                description='Retrieve list of all the files dataruns.')
+        ft_argparser = FuncArgumentParser(
+                prog='filetree',
+                description='Extract the file tree structure from the given ' +
+                            'node (use node 0x600 by default).')
+        ft_argparser.add_argument('node_id', action='store',
+                type=lambda x: int(x, 0), default=0x600,
+                help='node identifier of the node to extract the file tree ' +
+                     'structure from')
+        hd_argparser = FuncArgumentParser(
+                prog='hexdump',
+                description='Hexdump the number of bytes at the provided ' +
+                            'offset.')
+        hd_argparser.add_argument('dump_offset', action='store',
+                type=lambda x: int(x, 0),
+                help='dump offset of the hexdump start')
+        hd_argparser.add_argument('size', action='store',
+                type=lambda x: int(x, 0),
+                help='number of bytes to dump')
+        hb_argparser = FuncArgumentParser(
+                prog='hexblock',
+                description='Hexdump the block with the provided ' +
+                            'entryblock identifier.')
+        hb_argparser.add_argument('entryblock_id', action='store',
+                type=lambda x: int(x, 0),
+                help='entryblock identifier to hexdump')
+        bye_argparser = FuncArgumentParser(
+                prog='bye',
+                description='Exit the program. Are you sure?')
+        record_argparser = FuncArgumentParser(
+                prog='record',
+                description='Save the following commands to selected file. ' +
+                            'Saved file can be used afterwards for replay ' +
+                            'with the \'playback\' command.')
+        record_argparser.add_argument('output_file', action='store',
+                help='file onto which commands will be saved')
+        playback_argparser = FuncArgumentParser(
+                prog='playback',
+                description='Execute the sequence of commands defined in ' +
+                            'the input file.')
+        playback_argparser.add_argument('input_file', action='store',
+                help='file from which commands to execute will be read')
+        self._args = {file_argparser.prog: file_argparser,
+                      vol_argparser.prog: vol_argparser,
+                      part_argparser.prog: part_argparser,
+                      feb_argparser.prog: feb_argparser,
+                      fp_argparser.prog: fp_argparser,
+                      lfiles_argparser.prog: lfiles_argparser,
+                      lfolders_argparser.prog: lfolders_argparser,
+                      eb_argparser.prog: eb_argparser,
+                      tc_argparser.prog: tc_argparser,
+                      tce_argparser.prog: tce_argparser,
+                      ot_argparser.prog: ot_argparser,
+                      alloc_argparser.prog: alloc_argparser,
+                      attr_argparser.prog: attr_argparser,
+                      ds_argparser.prog: ds_argparser,
+                      ldr_argparser.prog: ldr_argparser,
+                      ft_argparser.prog: ft_argparser,
+                      hd_argparser.prog: hd_argparser,
+                      hb_argparser.prog: hb_argparser,
+                      bye_argparser.prog: bye_argparser,
+                      record_argparser.prog: record_argparser,
+                      playback_argparser.prog: playback_argparser
                      }
 
     def _check_func_args(self, func, arg):
@@ -114,9 +240,9 @@ class PyReFSShell(cmd.Cmd):
     def preloop(self):
         print('''Hello master! Welcome home.
 I will try to help you to analyze your ReFS partition dumps.
-Type 'help' or '?' to list commands.
+Type 'help' or '?' to list commands, and 'bye' or <ctrl-d> to exit.
 Type 'help <command>' for a short description of the command.
-type '<command> -h' for the usage instructions of the command.''')
+Type '<command> -h' for the usage instructions of the command.''')
         if not self.dump_filename:
             print('''Master I just realized you haven't set a dump to analyze.
 Please use the 'file' command to set it.''')
@@ -335,26 +461,28 @@ the pattern, think of escaping them.'''
             print('Master are you sure you performed \'find_blocks_with_folders\' before?')
 
     def do_hexdump(self, arg):
-        'Hexdump size bytes of the provided offset.'
-        if not arg or len(arg.split()) != 2:
-            print('Please Master indicate the offset and the size of the hexdump.')
-        args = [ int(x, 0) for x in arg.split() ]
-        offset = args[0]
-        size = args[1]
+        'Hexdump the number of bytes at the provided offset.'
+        cargs = self._check_func_args('hexdump', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        offset = args.dump_offset
+        size = args.size
         self.dump_file.seek(offset, 0)
         data = self.dump_file.read(size)
         hexdump(data, offset)
 
     def do_hexblock(self, arg):
-        'Hexdump the provided entryblock id.'
-        if not arg:
-            print('Please Master indicate the block to hexdump.')
+        'Hexdump the block with the provided entryblock identifier.'
+        cargs = self._check_func_args('hexblock', arg)
+        if cargs['return']:
             return
+        args = cargs['args']
+        ebid = args.entryblock_id
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first.')
+            print('Please Master use \'find_blocks\' first or use \'hexdump\'.')
             return
-        ebid = int(arg, 0)
         blks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if not blks:
             print('Master, are you sure such an entryblock exist?')
@@ -365,16 +493,17 @@ the pattern, think of escaping them.'''
         hexdump(data, blk['offset'])
 
     def do_entryblock(self, arg):
-        'Dump a block as an entryblock.'
-        if not arg:
-            print('Please Master indicate the block to dump as entryblock.')
+        'Dump the provided entryblock identifier as entryblock.'
+        cargs = self._check_func_args('entryblock', arg)
+        if cargs['return']:
             return
-        bid = int(arg, 0)
+        args = cargs['args']
+        ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
             return
-        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
             print('Master, I couldn\'t find the block you asked for.')
             return
@@ -383,17 +512,19 @@ the pattern, think of escaping them.'''
         reb.dump_entryblock(eb)
 
     def do_tree_control(self, arg):
-        'Dump a block as tree control.'
-        if not arg:
-            print('Master you have not indicated any block, block 0x1e will be used.')
-            bin = 0x1e
-        else:
-            bid = int(arg, 0)
+        '''Parse the given entryblock identifier as a TreeControl.
+If no entryblock identifier is provided it uses 0x1e as entryblock
+identifier.'''
+        cargs = self._check_func_args('tree_control', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
             return
-        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
             print('Master, I couldn\'t find the block you asked for.')
             return
@@ -402,16 +533,17 @@ the pattern, think of escaping them.'''
         rtc.dump_tree_control(tc)
 
     def do_tree_control_extension(self, arg):
-        'Dump a block as tree control extension.'
-        if not arg:
-            print('Please Master indicate the block to dump as tree control extension.')
+        'Parse the given entryblock identifier as a TreeControlExtension.'
+        cargs = self._check_func_args('tree_control_extension', arg)
+        if cargs['return']:
             return
-        bid = int(arg, 0)
+        args = cargs['args']
+        ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
             return
-        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
             print('Master, I couldn\'t find the block you asked for.')
             return
@@ -420,16 +552,17 @@ the pattern, think of escaping them.'''
         rtc.dump_tree_control_ext(tce)
 
     def do_object_tree(self, arg):
-        'Dump a block as object tree.'
-        if not arg:
-            print('Please Master indicate the block to dump as object tree.')
+        'Parse the given entryblock identifier as an ObjectTree.'
+        cargs = self._check_func_args('object_tree', arg)
+        if cargs['return']:
             return
-        bid = int(arg, 0)
+        args = cargs['args']
+        ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
             return
-        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
             print('Master, I couldn\'t find the block you asked for.')
             return
@@ -438,16 +571,17 @@ the pattern, think of escaping them.'''
         rot.dump_object_tree(ot)
 
     def do_allocator(self, arg):
-        'Dump a block as allocator.'
-        if not arg:
-            print('Please Master indicate the block to dump as allocator.')
+        'Parse the given entryblock identifier as an Allocator.'
+        cargs = self._check_func_args('allocator', arg)
+        if cargs['return']:
             return
-        bid = int(arg, 0)
+        args = cargs['args']
+        ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
             print('Please Master use \'find_blocks\' first.')
             return
-        blocks = [ b for b in self.blocks if b['entryblock'] == bid ]
+        blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
             print('Master, I couldn\'t find the block you asked for.')
             return
@@ -456,21 +590,26 @@ the pattern, think of escaping them.'''
         ralloc.dump_allocator(al)
 
     def do_attribute(self, arg):
-        'Dump the attribute at the given offset.'
-        if not arg:
-            print('Please Master indicate the offset with the attribute to dump.')
+        'Parse the given dump offset (in bytes) as an Attribute.'
+        cargs = self._check_func_args('attribute', arg)
+        if cargs['return']:
             return
-        offset = int(arg, 0)
+        args = cargs['args']
+        offset = args.dump_offset
         attr = rattr.read_attribute(self.dump_file, offset)
         rattr.dump_attribute(attr)
 
     def do_datastream(self, arg):
         '''Extract data from dump from the given datarun.
-Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 2> <num blocks blockid 2> ...'''
-        parms = arg.split()
-        ofn = parms[0]
-        size = int(parms[1], 0)
-        dataruns = [ (int(parms[i], 0), int(parms[i+1], 0)) for i in range(2,len(parms),2) ]
+Dataruns can be extracted by exploring the EntryBlocks (command `entryblock`)
+or using the `list_dataruns` command.'''
+        cargs = self._check_func_args('datastream', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        ofn = args.output_filename
+        size = args.output_size
+        dataruns = args.dataruns
         of = open(ofn, 'wb')
         for offset, length in dataruns:
             offset = (offset * 1024 * 16) + (self.part['first_lba'] * 512)
@@ -484,7 +623,10 @@ Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 
         of.close()
 
     def do_list_dataruns(self, arg):
-        'List of the dataruns of all the files.'
+        'Retrieve list of all the files dataruns.'
+        cargs = self._check_func_args('list_dataruns', arg)
+        if cargs['return']:
+            return
         files = 0
         drs = 0
         for block in self.blocks:
@@ -496,7 +638,8 @@ Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 
                     if attr['datarun'] and attr['datarun']['pointers_data']:
                         for ptr in attr['datarun']['pointers_data']:
                             if ptr['pointers_data']:
-                                datarun = [ (x['blockid'], x['num_blocks']) for x in ptr['pointers_data'] ]
+                                datarun = [ (x['blockid'], x['num_blocks'])
+                                            for x in ptr['pointers_data'] ]
                                 dataruns.append((ptr['logical_size'], datarun))
                                 drs = drs + 1
                     try:
@@ -507,10 +650,10 @@ Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 
                         block['offset'], block['entryblock'],
                         block['nodeid'], block['counter'], filename))
                     for length, datarun in dataruns:
-                        print('  {:#x}'.format(length), end='')
+                        print('  size: {:#x} datarun: '.format(length), end='')
                         for run in datarun:
                             blockid,num = run
-                            print(' {:#x} {}'.format(blockid,num), end='')
+                            print(' {:#x},{}'.format(blockid,num), end='')
                         print('')
         if files:
             print('Master I listed {} data runs from {} files.'.format(drs, files))
@@ -518,10 +661,12 @@ Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 
             print('Master I could not find any file, did you already execute \'find_blocks_with_filenames\'?')
 
     def do_filetree(self, arg):
-        'Extract the file tree structure from the given node (use node 0x600 by default)'
-        nodeid = 0x600
-        if arg:
-            nodeid = int(arg, 0)
+        'Extract the file tree structure from the given node (use node 0x600 by default).'
+        cargs = self._check_func_args('filetree', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        nodeid = args.node_id
         block_list = None
         if self.blocks:
             block_list = self.blocks
@@ -531,27 +676,47 @@ Format: datastream <outfile> <size> <blockid 1> <num blocks blockid 1> <blockid 
         dump_filetree(tree)
 
     def do_bye(self, arg):
-        'Are you sure?'
+        'Exit the program. Are you sure?'
+        cargs = self._check_func_args('bye', arg)
+        if cargs['return']:
+            return
         print('''It's been a great to serve you master.
 Bye!!!!''')
         self.close()
         return True
 
     def do_EOF(self, arg):
-        'Really are you sure?'
+        'Exit the program. Really are you sure?'
         print('\nI would have liked a \'bye\' Master, but I follow your orders.')
         return self.do_bye(arg)
 
     # ----- record and playback -----
     def do_record(self, arg):
-        'Save future commands to filename:  RECORD rose.cmd'
-        self.rec_file = open(arg, 'w')
+        ''''Save the following commands to selected file.
+Saved file can be used afterwards for replay with the \'playback\' command.'''
+        cargs = self._check_func_args('record', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
+        self.close()
+        try:
+            self.rec_file = open(args.output_file, 'w')
+        except:
+            print('Master I couldn\'t open file to save commands.')
+            self.rec_file = None
 
     def do_playback(self, arg):
-        'Playback commands from a file:  PLAYBACK rose.cmd'
+        'Execute the sequence of commands defined in the input file.'
+        cargs = self._check_func_args('playback', arg)
+        if cargs['return']:
+            return
+        args = cargs['args']
         self.close()
-        with open(arg) as f:
-            self.cmdqueue.extend(f.read().splitlines())
+        try:
+            with open(args.input_file) as f:
+                self.cmdqueue.extend(f.read().splitlines())
+        except:
+            print('Master I couldn\'t open file to read commands to execute.')
 
     def precmd(self, line):
         if self.rec_file and 'playback' not in line:
