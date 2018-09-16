@@ -1,0 +1,1 @@
+This file is here only to make sure the dumps folder appears in the git repository.

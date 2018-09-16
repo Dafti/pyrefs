@@ -5,6 +5,16 @@ FileSystems (ReFS).
 An interactive application to analyze a ReFS dump named `Igor` is also
 provided.
 
+`pyrefs` is still very immature, as of today it has been only tested with
+partitions using ReFS version 1.1.
+The code is neither far from perfect, and it would need a good refactoring.
+We are working on that, but be aware when you retrieve `pyrefs`.
+
+Finally, `pyrefs` naming convention for ReFS structures is mainly guided by
+Henry Georges thesis work.
+You can find Henry Georges's thesis and the code he developed to analyze ReFS
+here <https://brage.bibsys.no/xmlui/handle/11250/2502565>.
+
 ## Authors
 
  - Daniel Gracia Pérez \<<daniel.gracia-perez@cfa-afti.fr>\>
@@ -15,7 +25,7 @@ provided.
 ## Thanks
 
 We would like to thank: Henry Georges, his thesis document has been the
-foundation of this project; William Ballantine, for the ReFS dump images on his
+foundation of this project; Willi Ballenthin, for the ReFS dump images on his
 website and his ReFS articles; and all the other authors providing information
 on the ReFS filesystem.
 
@@ -69,6 +79,17 @@ We call it `Igor` and it can be launched with Python.
 
 `Igor` provides a limited toolset to analyze ReFS partitions exploiting the
 `pyrefs` library, the following sections enumerate them.
+
+## Examples
+
+Some examples of Igor usage are provided in the `examples` folder as Igor
+records.
+To execute/playback the examples contained in the `examples` folder download
+the `Windows8ReFSImages.zip` file provided by Willi Ballenthin at
+<http://www.williballenthin.com/forensics/refs/test_images/>, copy it to the
+`examples/dump` folder and uncompress it.
+Then you can use igor to test the records in the examples folder with the
+command `playback examples/<example_file>`.
 
 ## Command reference
 
