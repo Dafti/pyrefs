@@ -22,7 +22,7 @@ def print_table(_meta, _entries):
     for m in _meta:
         align = m['align'] if 'align' in m.keys() else ''
         print(('{:' + align + str(lengths[m['key']]) + '} ').format(
-            m['key']), end='')
+            m['header']), end='')
     print('')
     # print the table contents
     for v in values:

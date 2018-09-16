@@ -1,10 +1,8 @@
-file resilient_fs.raw.001
-find_blocks
-find_blocks_with_filenames
-find_blocks_with_folders
+file examples/dumps/Windows8ReFSImages/Physical_Image_9.001
+find_entryblocks -f -F
 list_folders
 list_filenames
 list_dataruns
-datastream 070601-014_1.JPEG 0x3339c 0x580 16
-datastream HashMyFiles.cfg 0x2f9 0x3b04 4
+datastream carving-example-linux-3.2.9.tar 0x13100000 0x7368,3220 0x7360,4 0x1000,16296
+datastream carving-example-README 0x73 0x7050,4
 bye
