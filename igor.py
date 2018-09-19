@@ -165,7 +165,7 @@ class PyReFSShell(cmd.Cmd):
                 description='Extract the file tree structure from the given ' +
                             'node (use node 0x600 by default).')
         ft_argparser.add_argument('node_id', action='store',
-                type=lambda x: int(x, 0), default=0x600,
+                type=lambda x: int(x, 0), nargs='?', default=0x600,
                 help='node identifier of the node to extract the file tree ' +
                      'structure from')
         hd_argparser = FuncArgumentParser(
