@@ -414,7 +414,7 @@ the pattern, think of escaping them.'''
         args = cargs['args']
         if not self.blocks:
             print('Master, first you need to look for the blocks and blocks with filenames.')
-            print('Please Master, use \'find_blocks\' and \'find_blocks_with_filenames\' first.')
+            print('Please Master, use \'find_entryblocks -f\' first.')
             return
         listed = 0
         for block in self.blocks:
@@ -431,7 +431,7 @@ the pattern, think of escaping them.'''
                         block['nodeid'], block['childid'], attr['_absolute_offset'], filename))
         print('Master I listed {} filenames.'.format(listed))
         if not listed:
-            print('Master are you sure you performed \'find_blocks_with_folders\' before?')
+            print('Master are you sure you performed \'find_entryblocks -F\' before?')
 
     def do_list_folders(self, arg):
         'List the found filename folders from the list of entryblocks with folders.'
@@ -441,7 +441,7 @@ the pattern, think of escaping them.'''
         args = cargs['args']
         if not self.blocks:
             print('Master, first you need to look for the blocks and blocks with folders.')
-            print('Please Master, use \'find_blocks\' and \'find_blocks_with_folders\' first.')
+            print('Please Master, use \'find_entryblocks -F\' first.')
             return
         listed = 0
         for block in self.blocks:
@@ -458,7 +458,7 @@ the pattern, think of escaping them.'''
                         block['nodeid'], block['childid'], attr['_absolute_offset'], foldername))
         print('Master I listed {} folders.'.format(listed))
         if not listed:
-            print('Master are you sure you performed \'find_blocks_with_folders\' before?')
+            print('Master are you sure you performed \'find_entryblocks -F\' before?')
 
     def do_hexdump(self, arg):
         'Hexdump the number of bytes at the provided offset.'
@@ -481,7 +481,7 @@ the pattern, think of escaping them.'''
         ebid = args.entryblock_id
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first or use \'hexdump\'.')
+            print('Please Master use \'find_entryblocks\' first or use \'hexdump\'.')
             return
         blks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if not blks:
@@ -501,7 +501,7 @@ the pattern, think of escaping them.'''
         ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first.')
+            print('Please Master use \'find_entryblocks\' first.')
             return
         blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
@@ -522,7 +522,7 @@ identifier.'''
         ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first.')
+            print('Please Master use \'find_entryblocks\' first.')
             return
         blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
@@ -541,7 +541,7 @@ identifier.'''
         ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first.')
+            print('Please Master use \'find_entryblocks\' first.')
             return
         blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
@@ -560,7 +560,7 @@ identifier.'''
         ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first.')
+            print('Please Master use \'find_entryblocks\' first.')
             return
         blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
@@ -579,7 +579,7 @@ identifier.'''
         ebid = args.entryblock_identifier
         if not self.blocks:
             print('Master, first you need to look for the blocks.')
-            print('Please Master use \'find_blocks\' first.')
+            print('Please Master use \'find_entryblocks\' first.')
             return
         blocks = [ b for b in self.blocks if b['entryblock'] == ebid ]
         if len(blocks) != 1:
@@ -658,7 +658,7 @@ or using the `list_dataruns` command.'''
         if files:
             print('Master I listed {} data runs from {} files.'.format(drs, files))
         else:
-            print('Master I could not find any file, did you already execute \'find_blocks_with_filenames\'?')
+            print('Master I could not find any file, did you already execute \'find_entryblocks -f\'?')
 
     def do_filetree(self, arg):
         'Extract the file tree structure from the given node (use node 0x600 by default).'
