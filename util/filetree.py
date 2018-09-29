@@ -1,18 +1,39 @@
 import part.refs.attribute as rattr
 import part.refs.entry_block as reb
+import part.refs.object_tree as rot
 import util.carving as carving
 
-def filetree(dump, v_offset, v_end_offset, nodeid, object_tree_ebid = None, block_list = None, block_size = 16 * 1024):
+def filetree(dump, v_offset, v_end_offset, nodeid, object_tree_ebid = None,
+             block_list = None, block_size = 16 * 1024):
     if not block_list:
-        block_list = carving.find_blocks(dump, v_offset, v_end_offset, block_size)
-    tree = _filetree(dump, nodeid, block_list)
-    print(tree)
+        block_list = carving.find_blocks(dump, v_offset, v_end_offset,
+                                         block_size)
+    nodetable = None
+    if object_tree_ebid:
+        nodetable = _extract_node_table(dump, v_offset, object_tree_ebid,
+                                        block_size)
+    tree = _filetree(dump, nodeid, block_list, nodetable)
     return tree
 
-def _filetree(dump, nodeid, complete_block_list):
-    node_block_list = [ reb.read_entryblock(dump, x['offset'])
-                        for x in complete_block_list
-                        if x['nodeid'] == nodeid ]
+def _extract_node_table(dump, offset, object_tree_ebid,
+                        block_size = 16 * 1024):
+    # TODO: currently the object tree analyzed is a single entryblock, what
+    # happens when it expands over multiple entryblocks?
+    ot = rot.read_object_tree(dump, offset + (object_tree_ebid * block_size))
+    nodetable = {}
+    for rec in ot['records']:
+        nodetable[rec['nodeid']] = rec['eb_num']
+    return nodetable
+
+def _filetree(dump, nodeid, complete_block_list, nodetable = None):
+    if nodetable:
+        node_block_list = [ reb.read_entryblock(dump, x['offset'])
+                            for x in complete_block_list
+                            if x['entryblock'] == nodetable[nodeid] ]
+    else:
+        node_block_list = [ reb.read_entryblock(dump, x['offset'])
+                            for x in complete_block_list
+                            if x['nodeid'] == nodeid ]
     if not node_block_list:
         return None
     node_ext_block_list = [ x for x in node_block_list if x['_contains_extents'] ]
@@ -55,7 +76,8 @@ def _filetree(dump, nodeid, complete_block_list):
         return None
     rootname = _get_directory_metadata_name(dm)
     files = _get_files(rec_block_list)
-    folders = _get_folders(rec_block_list, dump, complete_block_list)
+    folders = _get_folders(rec_block_list, dump, complete_block_list,
+                           nodetable)
     folder = {'name': rootname,
               'nodeid': rec_block_list[0]['node_id'],
               # 'entryblocks': block_list,
@@ -92,12 +114,14 @@ def _get_files(blocks):
         files.extend(bfiles)
     return files
 
-def _get_folders(blocks, dump, complete_block_list):
+def _get_folders(blocks, dump, complete_block_list, nodetable):
     folders = []
     for block in blocks:
         bfolders = [ {'name': ptr['foldername'],
                       'blockid': block['eb_number'],
-                      'tree': _filetree(dump, ptr['nodeid'], complete_block_list)}
+                      'tree': _filetree(dump, ptr['nodeid'],
+                                        complete_block_list,
+                                        nodetable)}
                      for ptr in block['pointers_data']
                      if ptr['type'] == rattr.ATTR_TYPE_FILENAME_FOLDER ]
         folders.extend(bfolders)
