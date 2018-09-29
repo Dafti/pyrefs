@@ -168,8 +168,9 @@ class PyReFSShell(cmd.Cmd):
                 type=lambda x: int(x, 0), nargs='?', default=0x600,
                 help='node identifier of the node to extract the file tree ' +
                      'structure from')
-        ft_argparser.add_argument('object_tree_ebid', action='store',
+        ft_argparser.add_argument('-o', '--object-tree-ebid', action='store',
                 type=lambda x: int(x, 0), nargs='?', default=None,
+                dest='object_tree_ebid',
                 help='ObjectTree EntryBlock identifier to use for the ' +
                      'filetree reconstruction')
         hd_argparser = FuncArgumentParser(
