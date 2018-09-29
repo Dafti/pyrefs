@@ -168,6 +168,10 @@ class PyReFSShell(cmd.Cmd):
                 type=lambda x: int(x, 0), nargs='?', default=0x600,
                 help='node identifier of the node to extract the file tree ' +
                      'structure from')
+        ft_argparser.add_argument('object_tree_ebid', action='store',
+                type=lambda x: int(x, 0), nargs='?', default=None,
+                help='ObjectTree EntryBlock identifier to use for the ' +
+                     'filetree reconstruction')
         hd_argparser = FuncArgumentParser(
                 prog='hexdump',
                 description='Hexdump the number of bytes at the provided ' +
@@ -667,12 +671,14 @@ or using the `list_dataruns` command.'''
             return
         args = cargs['args']
         nodeid = args.node_id
+        ot_ebid = args.object_tree_ebid
         block_list = None
         if self.blocks:
             block_list = self.blocks
         offset = self.part['first_lba']
         end_offset = self.part['last_lba']
-        tree = filetree(self.dump_file, offset, end_offset, nodeid, block_list)
+        tree = filetree(self.dump_file, offset, end_offset, nodeid,
+                        object_tree_ebid = ot_ebid, block_list = block_list)
         dump_filetree(tree)
 
     def do_bye(self, arg):
