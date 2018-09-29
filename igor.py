@@ -162,8 +162,7 @@ class PyReFSShell(cmd.Cmd):
                 description='Retrieve list of all the files dataruns.')
         ft_argparser = FuncArgumentParser(
                 prog='filetree',
-                description='Extract the file tree structure from the given ' +
-                            'node (use node 0x600 by default).')
+                description=self.do_filetree.__doc__)
         ft_argparser.add_argument('node_id', action='store',
                 type=lambda x: int(x, 0), nargs='?', default=0x600,
                 help='node identifier of the node to extract the file tree ' +
@@ -666,7 +665,15 @@ or using the `list_dataruns` command.'''
             print('Master I could not find any file, did you already execute \'find_entryblocks -f\'?')
 
     def do_filetree(self, arg):
-        'Extract the file tree structure from the given node (use node 0x600 by default).'
+        '''Extract the file tree structure from the given node (use node \
+0x600 by default).
+Two different approaches are followed to build the filetree depending on the
+provision of an ObjectTree.
+If an ObjectTree is provided then EntryBlocks for each node in the filetree
+will be chosen following the ObjectTree data.
+If the ObjectTree is not provided then the EntryBlocks for each node in the
+filetree will be chosen such that it is the newest of the node (i.e., the
+EntryBlock with the biggest counter value).'''
         cargs = self._check_func_args('filetree', arg)
         if cargs['return']:
             return
